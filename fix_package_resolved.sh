@@ -1,3 +1,13 @@
+#!/bin/bash
+set -e
+
+# Create updated package.resolved files
+for FILE in ./backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved ./backdoor.xcworkspace/xcshareddata/swiftpm/Package.resolved; do
+    # Make sure the file is in valid JSON format
+    if ! jq . "$FILE" > /dev/null 2>&1; then
+        echo "Warning: $FILE is not valid JSON, will create a new one"
+        # Create a new package.resolved file
+        cat << 'JSON' > "$FILE"
 {
   "pins": [
     {
@@ -66,3 +76,22 @@
   ],
   "version": 2
 }
+JSON
+        continue
+    fi
+
+    # Update URLs to ensure they match the expected ones
+    jq '.pins |= map(if .identity == "cryptoswift" then .location = "https://github.com/krzyzanowskim/CryptoSwift.git" else . end)' "$FILE" |
+    jq '.pins |= map(if .identity == "snapkit" then .location = "https://github.com/SnapKit/SnapKit.git" else . end)' |
+    jq '.pins |= map(if .identity == "lottie-spm" then .location = "https://github.com/airbnb/lottie-spm.git" else . end)' |
+    jq '.pins |= map(if .identity == "swiftuix" then .location = "https://github.com/SwiftUIX/SwiftUIX.git" else . end)' |
+    jq '.pins |= map(if .identity == "moya" then .location = "https://github.com/Moya/Moya.git" else . end)' |
+    jq '.pins |= map(if .identity == "r.swift" then .location = "https://github.com/mac-cain13/R.swift.git" else . end)' |
+    jq '.pins |= map(if .identity == "zipfoundation" then .location = "https://github.com/weichsel/ZIPFoundation.git" else . end)' > "$FILE.fixed"
+
+    # Apply the fix
+    mv "$FILE.fixed" "$FILE"
+    echo "Fixed package URLs in $FILE"
+done
+
+echo "Fixed all package.resolved files"

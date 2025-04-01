@@ -12,7 +12,7 @@
 		3322FF512BFEE5B9001768D8 /* NukeExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 3322FF502BFEE5B9001768D8 /* NukeExtensions */; };
 		3322FF532BFEE5B9001768D8 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3322FF522BFEE5B9001768D8 /* NukeUI */; };
 		3322FF552BFEE5B9001768D8 /* NukeVideo in Frameworks */ = {isa = PBXBuildFile; productRef = 3322FF542BFEE5B9001768D8 /* NukeVideo */; };
-		336EEE812C32367C0011188D /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = E7F6E7D7-0A8C-4D5C-8D49-7D8A6B9B28D0 /* ZIPFoundation */; };
+		336EEE812C32367C0011188D /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 336EEE802C32367C0011188D /* ZIPFoundation */; };
 		33BDD0A02C76D06900AF6169 /* UIOnboarding.md in Resources */ = {isa = PBXBuildFile; fileRef = 33BDD09F2C76D06900AF6169 /* UIOnboarding.md */; };
 		33BDD0A22C76D0FB00AF6169 /* Ellekit.md in Resources */ = {isa = PBXBuildFile; fileRef = 33BDD0A12C76D0FB00AF6169 /* Ellekit.md */; };
 		33BDD0A62C76EA4200AF6169 /* UIOnboarding in Frameworks */ = {isa = PBXBuildFile; productRef = 33BDD0A52C76EA4200AF6169 /* UIOnboarding */; };
@@ -104,14 +104,14 @@
 				3322FF512BFEE5B9001768D8 /* NukeExtensions in Frameworks */,
 				33BDD0A62C76EA4200AF6169 /* UIOnboarding in Frameworks */,
 				3322FF532BFEE5B9001768D8 /* NukeUI in Frameworks */,
-				F3D6F4E3-1D78-4A71-8C94-151CFE7733DE /* CryptoSwift in Frameworks */,
-				7CC0A9E9-F3B1-4C8D-9E3D-3210F6C8C6FA /* SnapKit in Frameworks */,
-				D87D83C7-3E9F-455D-A1F6-D27F17E7EBEC /* Lottie in Frameworks */,
-				8C3E6A2A-F0D1-4A85-BD59-CC58A0DDE482 /* SwiftUIX in Frameworks */,
-				B97E3BF4-07C2-4E5D-B3BB-2C4D8DC5AF1B /* Moya in Frameworks */,
-				F1D0FF8C-52C0-4879-8D29-80A61C2C7F25 /* RswiftLibrary in Frameworks */,
+				334AD1D02D8B987600E12366 /* CryptoSwift in Frameworks */,
+				334AD1D12D8B987600E12367 /* SnapKit in Frameworks */,
+				334AD1D22D8B987600E12368 /* Lottie in Frameworks */,
+				334AD1D32D8B987600E12369 /* SwiftUIX in Frameworks */,
+				334AD1D42D8B987600E1236A /* Moya in Frameworks */,
+				334AD1D52D8B987600E1236B /* RswiftLibrary in Frameworks */,
 				33C0409E2C30DD3E00243D90 /* AlertKit in Frameworks */,
-				41B58FFC-7D30-4FC7-ACA5-23C31E7CDA46 /* SSNaturalLanguage in Frameworks */,
+				334AD1A12D8B987600E12345 /* SSNaturalLanguage in Frameworks */,
 				336EEE812C32367C0011188D /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -219,16 +219,16 @@
 				3322FF542BFEE5B9001768D8 /* NukeVideo */,
 				D0AA9D532BFF02AF00A65D45 /* OpenSSL */,
 				33C0409D2C30DD3E00243D90 /* AlertKit */,
-				E7F6E7D7-0A8C-4D5C-8D49-7D8A6B9B28D0 /* ZIPFoundation */,
+				336EEE802C32367C0011188D /* ZIPFoundation */,
 				33BE87A42C72E1220044D245 /* SWCompression */,
 				33BDD0A52C76EA4200AF6169 /* UIOnboarding */,
-				F3D6F4E3-1D78-4A71-8C94-151CFE7733DE /* CryptoSwift */,
-				7CC0A9E9-F3B1-4C8D-9E3D-3210F6C8C6FA /* SnapKit */,
-				D87D83C7-3E9F-455D-A1F6-D27F17E7EBEC /* Lottie */,
-				8C3E6A2A-F0D1-4A85-BD59-CC58A0DDE482 /* SwiftUIX */,
-				B97E3BF4-07C2-4E5D-B3BB-2C4D8DC5AF1B /* Moya */,
-				F1D0FF8C-52C0-4879-8D29-80A61C2C7F25 /* RswiftLibrary */,
-					41B58FFC-7D30-4FC7-ACA5-23C31E7CDA46 /* SSNaturalLanguage */,
+				334AD1C02D8B987600E12356 /* CryptoSwift */,
+				334AD1C12D8B987600E12357 /* SnapKit */,
+				334AD1C22D8B987600E12358 /* Lottie */,
+				334AD1C32D8B987600E12359 /* SwiftUIX */,
+				334AD1C42D8B987600E1235A /* Moya */,
+				334AD1C52D8B987600E1235B /* RswiftLibrary */,
+					334AD1A02D8B987600E12345 /* SSNaturalLanguage */,
 				33BDD0BF2C7866FE00AF6169 /* Vapor */,
 			);
 			productName = backdoor;
@@ -272,15 +272,15 @@
 				3322FF4D2BFEE5B9001768D8 /* XCRemoteSwiftPackageReference "Nuke" */,
 				D0AA9D522BFF02AF00A65D45 /* XCRemoteSwiftPackageReference "OpenSSL-Swift-Package" */,
 				33C0409C2C30DD3E00243D90 /* XCRemoteSwiftPackageReference "AlertKit" */,
-				F6EDA77F-CFB6-4E9A-9158-A8E0A8E2106C /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				336EEE7F2C32367C0011188D /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 				33BE87A32C72E1220044D245 /* XCRemoteSwiftPackageReference "SWCompression" */,
 				33BDD0A42C76EA4100AF6169 /* XCRemoteSwiftPackageReference "UIOnboarding-18" */,
-				5F2CACAD-738F-4D42-B7CE-301D691A0F36 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
-				D3CF6C59-90A7-4F51-BD47-36AADC5B403D /* XCRemoteSwiftPackageReference "SnapKit" */,
-				6CC3FB0B-C905-4FB4-9135-9852CE2F74E0 /* XCRemoteSwiftPackageReference "lottie-spm" */,
-				A38A9A11-FA7F-44DE-BB13-24CEA5F9B50A /* XCRemoteSwiftPackageReference "SwiftUIX" */,
-				BE18CE02-6F5D-4C8B-8EE2-4FC714BC55B5 /* XCRemoteSwiftPackageReference "Moya" */,
-				D1FDBB54-A3D5-4EFC-98A3-1F6A33C35C15 /* XCRemoteSwiftPackageReference "R-swift" */,
+				334AD1B02D8B987600E12346 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
+				334AD1B12D8B987600E12347 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				334AD1B22D8B987600E12348 /* XCRemoteSwiftPackageReference "lottie-spm" */,
+				334AD1B32D8B987600E12349 /* XCRemoteSwiftPackageReference "SwiftUIX" */,
+				334AD1B42D8B987600E1234A /* XCRemoteSwiftPackageReference "Moya" */,
+				334AD1B52D8B987600E1234B /* XCRemoteSwiftPackageReference "R-swift" */,
 				33BDD0BE2C7866FE00AF6169 /* XCRemoteSwiftPackageReference "vapor" */,
 			);
 			preferredProjectObjectVersion = 56;
@@ -598,7 +598,7 @@
 				minimumVersion = 12.7.0;
 			};
 		};
-		F6EDA77F-CFB6-4E9A-9158-A8E0A8E2106C /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+		336EEE7F2C32367C0011188D /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/weichsel/ZIPFoundation.git";
 			requirement = {
@@ -635,7 +635,7 @@
 			repositoryURL = "https://github.com/sparrowcode/AlertKit.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-		5F2CACAD-738F-4D42-B7CE-301D691A0F36 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
+		334AD1B02D8B987600E12346 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift.git";
 			requirement = {
@@ -643,7 +643,7 @@
 				minimumVersion = 1.8.3;
 			};
 		};
-		D3CF6C59-90A7-4F51-BD47-36AADC5B403D /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+		334AD1B12D8B987600E12347 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
 			requirement = {
@@ -651,7 +651,7 @@
 				minimumVersion = 5.0.1;
 			};
 		};
-		6CC3FB0B-C905-4FB4-9135-9852CE2F74E0 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
+		334AD1B22D8B987600E12348 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
 			requirement = {
@@ -659,7 +659,7 @@
 				minimumVersion = 4.5.1;
 			};
 		};
-		A38A9A11-FA7F-44DE-BB13-24CEA5F9B50A /* XCRemoteSwiftPackageReference "SwiftUIX" */ = {
+		334AD1B32D8B987600E12349 /* XCRemoteSwiftPackageReference "SwiftUIX" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftUIX/SwiftUIX.git";
 			requirement = {
@@ -667,7 +667,7 @@
 				kind = branch;
 			};
 		};
-		BE18CE02-6F5D-4C8B-8EE2-4FC714BC55B5 /* XCRemoteSwiftPackageReference "Moya" */ = {
+		334AD1B42D8B987600E1234A /* XCRemoteSwiftPackageReference "Moya" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Moya/Moya.git";
 			requirement = {
@@ -675,40 +675,40 @@
 				minimumVersion = 15.0.0;
 			};
 		};
-		D1FDBB54-A3D5-4EFC-98A3-1F6A33C35C15 /* XCRemoteSwiftPackageReference "R-swift" */ = {
+		334AD1B52D8B987600E1234B /* XCRemoteSwiftPackageReference "R-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mac-cain13/R.swift.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 7.0.0;
-		F3D6F4E3-1D78-4A71-8C94-151CFE7733DE /* CryptoSwift */ = {
+		334AD1C02D8B987600E12356 /* CryptoSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5F2CACAD-738F-4D42-B7CE-301D691A0F36 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
+			package = 334AD1B02D8B987600E12346 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
 			productName = CryptoSwift;
 		};
-		7CC0A9E9-F3B1-4C8D-9E3D-3210F6C8C6FA /* SnapKit */ = {
+		334AD1C12D8B987600E12357 /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D3CF6C59-90A7-4F51-BD47-36AADC5B403D /* XCRemoteSwiftPackageReference "SnapKit" */;
+			package = 334AD1B12D8B987600E12347 /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
 		};
-		D87D83C7-3E9F-455D-A1F6-D27F17E7EBEC /* Lottie */ = {
+		334AD1C22D8B987600E12358 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6CC3FB0B-C905-4FB4-9135-9852CE2F74E0 /* XCRemoteSwiftPackageReference "lottie-spm" */;
+			package = 334AD1B22D8B987600E12348 /* XCRemoteSwiftPackageReference "lottie-spm" */;
 			productName = Lottie;
 		};
-		8C3E6A2A-F0D1-4A85-BD59-CC58A0DDE482 /* SwiftUIX */ = {
+		334AD1C32D8B987600E12359 /* SwiftUIX */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A38A9A11-FA7F-44DE-BB13-24CEA5F9B50A /* XCRemoteSwiftPackageReference "SwiftUIX" */;
+			package = 334AD1B32D8B987600E12349 /* XCRemoteSwiftPackageReference "SwiftUIX" */;
 			productName = SwiftUIX;
 		};
-		B97E3BF4-07C2-4E5D-B3BB-2C4D8DC5AF1B /* Moya */ = {
+		334AD1C42D8B987600E1235A /* Moya */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BE18CE02-6F5D-4C8B-8EE2-4FC714BC55B5 /* XCRemoteSwiftPackageReference "Moya" */;
+			package = 334AD1B42D8B987600E1234A /* XCRemoteSwiftPackageReference "Moya" */;
 			productName = Moya;
 		};
-		F1D0FF8C-52C0-4879-8D29-80A61C2C7F25 /* RswiftLibrary */ = {
+		334AD1C52D8B987600E1235B /* RswiftLibrary */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D1FDBB54-A3D5-4EFC-98A3-1F6A33C35C15 /* XCRemoteSwiftPackageReference "R-swift" */;
+			package = 334AD1B52D8B987600E1234B /* XCRemoteSwiftPackageReference "R-swift" */;
 			productName = RswiftLibrary;
 		};
 			};
@@ -723,7 +723,7 @@
 				branch = main;
 				kind = branch;
 			};
-		8B9D8720-27D4-4D42-AD91-C6A7F5C4D8FF /* XCRemoteSwiftPackageReference "SSNaturalLanguage" */ = {
+		334AD19F2D8B987600E12345 /* XCRemoteSwiftPackageReference "SSNaturalLanguage" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SimformSolutionsPvtLtd/SSNaturalLanguage.git";
 			requirement = {
@@ -755,9 +755,9 @@
 			package = 3322FF4D2BFEE5B9001768D8 /* XCRemoteSwiftPackageReference "Nuke" */;
 			productName = NukeVideo;
 		};
-		E7F6E7D7-0A8C-4D5C-8D49-7D8A6B9B28D0 /* ZIPFoundation */ = {
+		336EEE802C32367C0011188D /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = F6EDA77F-CFB6-4E9A-9158-A8E0A8E2106C /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			package = 336EEE7F2C32367C0011188D /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
 			productName = ZIPFoundation;
 		};
 		33BDD0A52C76EA4200AF6169 /* UIOnboarding */ = {
@@ -776,9 +776,9 @@
 			productName = SWCompression;
 		};
 		33C0409D2C30DD3E00243D90 /* AlertKit */ = {
-		41B58FFC-7D30-4FC7-ACA5-23C31E7CDA46 /* SSNaturalLanguage */ = {
+		334AD1A02D8B987600E12345 /* SSNaturalLanguage */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 8B9D8720-27D4-4D42-AD91-C6A7F5C4D8FF /* XCRemoteSwiftPackageReference "SSNaturalLanguage" */;
+			package = 334AD19F2D8B987600E12345 /* XCRemoteSwiftPackageReference "SSNaturalLanguage" */;
 			productName = SSNaturalLanguage;
 		};
 			isa = XCSwiftPackageProductDependency;
