@@ -17,3 +17,11 @@ Payload
 *.swp
 .swiftlint.txt
 *.swift.orig
+
+# CocoaPods
+Pods/
+Podfile.lock
+*.xcworkspace/xcuserdata/
+
+# R.swift generated file
+*.generated.swift

@@ -20,7 +20,8 @@ jobs:
         run: | 
           mkdir upload
           echo "Using cache-friendly package resolution strategy (preserving SPM caches)..."
-          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" 
+          pod install --repo-update || pod install
+make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" 
           mv packages/* upload/
 
       - name: Get Version Number
