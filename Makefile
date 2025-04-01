@@ -16,26 +16,30 @@ APP_DIR     = $(APP_TMP)/Build/Products/$(RELEASE)/$(NAME).app
 # Default CFLAGS if not provided externally
 CFLAGS ?= -Onone
 
-# SPM cache settings for CI environments
-SPM_CACHE = $(HOME)/Library/Caches/org.swift.swiftpm
+# Default SPM settings for CI environments
+DERIVED_DATA = $(TMPDIR)/DerivedData
 
 all: package
 
-package: resolve-packages build
+package: clean-spm-caches prepare-build build
 
-# Explicitly resolve Swift Package dependencies before building
-resolve-packages:
-	@echo "Resolving Swift Package dependencies..."
-	@mkdir -p $(SPM_CACHE)
-	@set -o pipefail; \
-		xcodebuild \
-		-resolvePackageDependencies \
-		-project '$(NAME).xcodeproj' \
-		-scheme $(SCHEME) \
-		-scmProvider system \
-		-clonedSourcePackagesDirPath $(SPM_CACHE)
+# Clean SPM caches to prevent "already exists unexpectedly" errors
+clean-spm-caches:
+	@echo "Cleaning Swift Package Manager caches..."
+	@rm -rf $(HOME)/Library/Caches/org.swift.swiftpm
+	@rm -rf $(HOME)/.swiftpm
+	@rm -rf $(DERIVED_DATA)
+	@mkdir -p $(DERIVED_DATA)
 
-# Main build step
+# Prepare the build environment with proper package resolution
+prepare-build:
+	@echo "Preparing build environment and resolving packages..."
+	@xcodebuild clean -project '$(NAME).xcodeproj' -scheme $(SCHEME) -quiet
+	@xcodebuild -resolvePackageDependencies -project '$(NAME).xcodeproj' -scheme $(SCHEME) -derivedDataPath $(DERIVED_DATA) -quiet || true
+	@echo "Validating package resolution..."
+	@xcodebuild -project '$(NAME).xcodeproj' -scheme $(SCHEME) -list -quiet
+
+# Main build step with simplified approach
 build:
 	@echo "Building project..."
 	@rm -rf $(APP_TMP)
@@ -48,11 +52,12 @@ build:
 		-configuration $(CONFIGURATION) \
 		-arch arm64 -sdk $(PLATFORM) \
 		-derivedDataPath $(APP_TMP) \
-		-scmProvider system \
-		-clonedSourcePackagesDirPath $(SPM_CACHE) \
 		CODE_SIGNING_ALLOWED=NO \
 		DSTROOT=$(APP_TMP)/install \
 		ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
+		SWIFT_ACTIVE_COMPILATION_CONDITIONS="RELEASE" \
+		GCC_PREPROCESSOR_DEFINITIONS="RELEASE=1" \
+		OTHER_SWIFT_FLAGS="-Xfrontend -enable-experimental-cxx-interop" \
 		CFLAGS="$(CFLAGS)"
 		
 	@rm -rf Payload

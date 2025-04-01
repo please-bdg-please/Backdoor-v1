@@ -16,10 +16,13 @@ jobs:
           sudo install -m755 ldid_macosx_x86_64 /usr/local/bin/ldid
           brew install 7zip gnu-sed
 
-      - name: Build package with improved package resolution
+      - name: Build package with enhanced package resolution
         run: | 
           mkdir upload
-          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone"
+          echo "Cleaning Xcode caches..."
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          echo "Building with direct package resolution..."
+          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" -j1
           mv packages/* upload/
 
       - name: Get Version Number
