@@ -27,6 +27,12 @@
 		33E5A59B2CC858FE00532930 /* Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E5A59A2CC858FE00532930 /* Language.swift */; };
 		33E5A59D2CC859E400532930 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 33BF31642C7C05330087F3D2 /* Localizable.strings */; };
 		33E5A5A02CC85C1B00532930 /* Antoine.md in Resources */ = {isa = PBXBuildFile; fileRef = 33E5A59F2CC85C1B00532930 /* Antoine.md */; };
+		33FF1B102D12345600ABCDEF /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 33ABCDF01234567890ABCDEF /* CryptoSwift */; };
+		33FF1B112D12345600ABCDEF /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 33ABCDF11234567890ABCDE1 /* SnapKit */; };
+		33FF1B122D12345600ABCDEF /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 33ABCDF21234567890ABCDE2 /* Lottie */; };
+		33FF1B132D12345600ABCDEF /* SwiftUIX in Frameworks */ = {isa = PBXBuildFile; productRef = 33ABCDF31234567890ABCDE3 /* SwiftUIX */; };
+		33FF1B142D12345600ABCDEF /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = 33ABCDF41234567890ABCDE4 /* Moya */; };
+		33FF1B152D12345600ABCDEF /* RswiftLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 33ABCDF51234567890ABCDE5 /* RswiftLibrary */; };
 		AA280D952C76AB7400CAC838 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA280D942C76AB7400CAC838 /* MobileCoreServices.framework */; };
 		D0AA9D542BFF02AF00A65D45 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = D0AA9D532BFF02AF00A65D45 /* OpenSSL */; };
 /* End PBXBuildFile section */
@@ -106,6 +112,12 @@
 				3322FF532BFEE5B9001768D8 /* NukeUI in Frameworks */,
 				33C0409E2C30DD3E00243D90 /* AlertKit in Frameworks */,
 				336EEE812C32367C0011188D /* ZIPFoundation in Frameworks */,
+				33FF1B102D12345600ABCDEF /* CryptoSwift in Frameworks */,
+				33FF1B112D12345600ABCDEF /* SnapKit in Frameworks */,
+				33FF1B122D12345600ABCDEF /* Lottie in Frameworks */,
+				33FF1B132D12345600ABCDEF /* SwiftUIX in Frameworks */,
+				33FF1B142D12345600ABCDEF /* Moya in Frameworks */,
+				33FF1B152D12345600ABCDEF /* RswiftLibrary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
