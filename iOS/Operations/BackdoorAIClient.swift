@@ -15,8 +15,8 @@ class BackdoorAIClient {
     // Server configuration
     private let baseURL: URL
     
-    // Secure API key - hardcoded and not accessible
-    private static let secureAPIKey = "rnd_2DfFj1QmKeAWcXF5u9Z0oV35kBiN"
+    // Secure API key - hardcoded and accessible internally
+    internal static let secureAPIKey = "rnd_2DfFj1QmKeAWcXF5u9Z0oV35kBiN"
     
     // Server endpoints
     private let learnEndpoint = "api/ai/learn"
