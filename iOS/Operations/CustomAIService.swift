@@ -131,6 +131,23 @@ final class CustomAIService {
             // Get conversation history for context
             let conversationContext = self.extractConversationContext(messages: messages)
             
+            // Process the language of the message if NaturalLanguage is available
+            if #available(iOS 13.0, *) {
+                // Identify the language of the message
+                let tagger = NLTagger(tagSchemes: [.language])
+                tagger.string = lastUserMessage
+                let language = tagger.dominantLanguage
+                
+                Debug.shared.log(message: "Detected message language: \(language ?? "unknown")", type: .debug)
+                
+                // Set language context for better response generation
+                if let detectedLanguage = language {
+                    var additionalContext: [String: Any] = context.additionalContext ?? [:]
+                    additionalContext["detectedLanguage"] = detectedLanguage
+                    context.additionalContext = additionalContext
+                }
+            }
+            
             // Check if we should use CoreML-enhanced analysis
             if self.isCoreMLInitialized {
                 // Use CoreML for enhanced intent analysis
