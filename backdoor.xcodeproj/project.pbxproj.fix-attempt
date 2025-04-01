@@ -635,7 +635,36 @@
 			repositoryURL = "https://github.com/sparrowcode/AlertKit.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.1.9;
+		334AD1B02D8B987600E12346 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.8.3;
+			};
+		};
+		334AD1B12D8B987600E12347 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.1;
+			};
+		};
+		334AD1B22D8B987600E12348 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.1;
+			};
+		};
+		334AD1B32D8B987600E12349 /* XCRemoteSwiftPackageReference "SwiftUIX" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftUIX/SwiftUIX.git";
+			requirement = {
+				branch = "master";
+				kind = branch;
 			};
 		};
 		334AD19F2D8B987600E12345 /* XCRemoteSwiftPackageReference "SSNaturalLanguage" */ = {
@@ -674,7 +703,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftUIX/SwiftUIX.git";
 			requirement = {
-				branch = "master";
+				branch = master;
 				kind = branch;
 			};
 		};
