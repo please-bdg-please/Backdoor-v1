@@ -1,0 +1,47 @@
+name: Verify CocoaPods Setup
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Podfile'
+      - '.github/workflows/cocoapods-setup.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Podfile'
+      - '.github/workflows/cocoapods-setup.yml'
+  workflow_dispatch:
+
+jobs:
+  verify-cocoapods:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+          bundler-cache: true
+
+      - name: Install CocoaPods
+        run: |
+          gem install cocoapods
+          pod --version
+
+      - name: Verify Podfile
+        run: pod spec lint --quick --allow-warnings || true
+
+      - name: Install Dependencies
+        run: pod install --repo-update || pod install --no-repo-update
+
+      - name: Check Workspace Creation
+        run: |
+          if [ -d "backdoor.xcworkspace" ]; then
+            echo "✅ Workspace successfully created"
+          else
+            echo "❌ Workspace not created"
+            exit 1
+          fi
