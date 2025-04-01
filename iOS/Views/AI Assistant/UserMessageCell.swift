@@ -5,6 +5,7 @@
 // Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
 
 import UIKit
+import SnapKit
 
 class UserMessageCell: UITableViewCell {
     private let bubbleView = UIView()
@@ -24,31 +25,50 @@ class UserMessageCell: UITableViewCell {
         selectionStyle = .none
         backgroundColor = .clear
 
-        bubbleView.backgroundColor = .systemBlue
+        // Create the bubble view
         bubbleView.layer.cornerRadius = 16
         bubbleView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMinYCorner]
+        
+        // Add gradient to bubble for a more modern look
+        bubbleView.addGradientBackground(
+            colors: [
+                UIColor.systemBlue,
+                UIColor(red: 0.1, green: 0.6, blue: 1.0, alpha: 1.0)
+            ],
+            startPoint: CGPoint(x: 0, y: 0),
+            endPoint: CGPoint(x: 1, y: 1)
+        )
+        
+        // Add subtle shadow for depth
+        bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        bubbleView.layer.shadowRadius = 4
+        bubbleView.layer.shadowOpacity = 0.5
+        bubbleView.layer.masksToBounds = false
 
+        // Configure message label
         messageLabel.numberOfLines = 0
         messageLabel.textColor = .white
         messageLabel.font = .systemFont(ofSize: 16)
 
+        // Add subviews
         contentView.addSubview(bubbleView)
         bubbleView.addSubview(messageLabel)
 
-        bubbleView.translatesAutoresizingMaskIntoConstraints = false
-        messageLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            bubbleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
-            bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
-            bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
-            bubbleView.widthAnchor.constraint(lessThanOrEqualToConstant: 280),
-
-            messageLabel.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 12),
-            messageLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -12),
-            messageLabel.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 8),
-            messageLabel.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -8),
-        ])
+        // Setup constraints with SnapKit
+        bubbleView.snp.makeConstraints { make in
+            make.trailing.equalToSuperview().offset(-12)
+            make.top.equalToSuperview().offset(6)
+            make.bottom.equalToSuperview().offset(-6)
+            make.width.lessThanOrEqualTo(280)
+        }
+        
+        messageLabel.snp.makeConstraints { make in
+            make.leading.equalTo(bubbleView).offset(12)
+            make.trailing.equalTo(bubbleView).offset(-12)
+            make.top.equalTo(bubbleView).offset(8)
+            make.bottom.equalTo(bubbleView).offset(-8)
+        }
     }
 
     func configure(with message: ChatMessage) {
