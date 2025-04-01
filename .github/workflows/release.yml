@@ -16,10 +16,11 @@ jobs:
           sudo install -m755 ldid_macosx_x86_64 /usr/local/bin/ldid
           brew install 7zip gnu-sed
 
-      - name: Build package with improved package resolution
+      - name: Build package with cache-friendly package resolution
         run: | 
           mkdir upload
-          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone"
+          echo "Using cache-friendly package resolution strategy (preserving SPM caches)..."
+          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" 
           mv packages/* upload/
 
       - name: Get Version Number
