@@ -1,0 +1,50 @@
+name: Manage Dependencies
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Package.swift'
+      - '.github/scripts/manage_dependencies.sh'
+      - '.github/workflows/dependency-management.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Package.swift'
+      - '.github/scripts/manage_dependencies.sh'
+      - '.github/workflows/dependency-management.yml'
+  workflow_dispatch:
+    inputs:
+      clean_cache:
+        description: 'Clean SPM caches before running'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  manage-dependencies:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Manage dependencies
+        run: |
+          if [ "${{ github.event.inputs.clean_cache }}" == "true" ]; then
+            .github/scripts/manage_dependencies.sh --clean
+          else
+            .github/scripts/manage_dependencies.sh
+          fi
+          
+      - name: Verify dependencies
+        run: |
+          swift package show-dependencies || echo "Could not show dependencies, but continuing..."
+          
+      - name: Commit changes if needed
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add Package.swift Package.resolved
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update dependencies via workflow"
+          git push
