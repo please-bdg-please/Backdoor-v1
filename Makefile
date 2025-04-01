@@ -16,9 +16,28 @@ APP_DIR     = $(APP_TMP)/Build/Products/$(RELEASE)/$(NAME).app
 # Default CFLAGS if not provided externally
 CFLAGS ?= -Onone
 
+# SPM cache settings for CI environments
+SPM_CACHE = $(HOME)/Library/Caches/org.swift.swiftpm
+
 all: package
 
-package:
+package: resolve-packages build
+
+# Explicitly resolve Swift Package dependencies before building
+resolve-packages:
+	@echo "Resolving Swift Package dependencies..."
+	@mkdir -p $(SPM_CACHE)
+	@set -o pipefail; \
+		xcodebuild \
+		-resolvePackageDependencies \
+		-project '$(NAME).xcodeproj' \
+		-scheme $(SCHEME) \
+		-scmProvider system \
+		-clonedSourcePackagesDirPath $(SPM_CACHE)
+
+# Main build step
+build:
+	@echo "Building project..."
 	@rm -rf $(APP_TMP)
 	
 	@set -o pipefail; \
@@ -29,6 +48,8 @@ package:
 		-configuration $(CONFIGURATION) \
 		-arch arm64 -sdk $(PLATFORM) \
 		-derivedDataPath $(APP_TMP) \
+		-scmProvider system \
+		-clonedSourcePackagesDirPath $(SPM_CACHE) \
 		CODE_SIGNING_ALLOWED=NO \
 		DSTROOT=$(APP_TMP)/install \
 		ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
