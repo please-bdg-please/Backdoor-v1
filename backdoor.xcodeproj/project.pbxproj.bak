@@ -216,12 +216,6 @@
 				33BE87A42C72E1220044D245 /* SWCompression */,
 				33BDD0A52C76EA4200AF6169 /* UIOnboarding */,
 				33BDD0BF2C7866FE00AF6169 /* Vapor */,
-				33ABCDF01234567890ABCDEF /* CryptoSwift */,
-				33ABCDF11234567890ABCDE1 /* SnapKit */,
-				33ABCDF21234567890ABCDE2 /* Lottie */,
-				33ABCDF31234567890ABCDE3 /* SwiftUIX */,
-				33ABCDF41234567890ABCDE4 /* Moya */,
-				33ABCDF51234567890ABCDE5 /* RswiftLibrary */,
 			);
 			productName = backdoor;
 			productReference = 33BA378B2BF8159F00FF530A /* backdoor.app */;
@@ -794,36 +788,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0AA9D522BFF02AF00A65D45 /* XCRemoteSwiftPackageReference "OpenSSL-Swift-Package" */;
 			productName = OpenSSL;
-		};
-		33ABCDF01234567890ABCDEF /* CryptoSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 33ABCDEF1234567890ABCDEF /* XCRemoteSwiftPackageReference "CryptoSwift" */;
-			productName = CryptoSwift;
-		};
-		33ABCDF11234567890ABCDE1 /* SnapKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 33ABCDEF1234567890ABCDE1 /* XCRemoteSwiftPackageReference "SnapKit" */;
-			productName = SnapKit;
-		};
-		33ABCDF21234567890ABCDE2 /* Lottie */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 33ABCDEF1234567890ABCDE2 /* XCRemoteSwiftPackageReference "lottie-spm" */;
-			productName = Lottie;
-		};
-		33ABCDF31234567890ABCDE3 /* SwiftUIX */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 33ABCDEF1234567890ABCDE3 /* XCRemoteSwiftPackageReference "SwiftUIX" */;
-			productName = SwiftUIX;
-		};
-		33ABCDF41234567890ABCDE4 /* Moya */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 33ABCDEF1234567890ABCDE4 /* XCRemoteSwiftPackageReference "Moya" */;
-			productName = Moya;
-		};
-		33ABCDF51234567890ABCDE5 /* RswiftLibrary */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 33ABCDEF1234567890ABCDE5 /* XCRemoteSwiftPackageReference "R.swift" */;
-			productName = RswiftLibrary;
 		};
 		33ABCDF01234567890ABCDEF /* CryptoSwift */ = {
 			isa = XCSwiftPackageProductDependency;
