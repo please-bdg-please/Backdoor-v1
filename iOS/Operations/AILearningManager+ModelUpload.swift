@@ -20,8 +20,8 @@ extension AILearningManager {
             return (false, "Server sync is disabled in settings. Please enable it to upload models.")
         }
         
-        // Get the latest model URL
-        guard let modelURL = getLatestModelURL() else {
+        // Get the latest model URL - use async version for proper await
+        guard let modelURL = await getLatestModelURLAsync() else {
             Debug.shared.log(message: "No trained model found to upload", type: .error)
             return (false, "No trained model found. Please train a model first.")
         }

@@ -15,19 +15,19 @@ class AILearningManager {
     static let shared = AILearningManager()
     
     // Local storage for interactions
-    private var storedInteractions: [AIInteraction] = []
-    private var userBehaviors: [UserBehavior] = []
-    private var appUsagePatterns: [AppUsagePattern] = []
+    internal var storedInteractions: [AIInteraction] = []
+    internal var userBehaviors: [UserBehavior] = []
+    internal var appUsagePatterns: [AppUsagePattern] = []
     
     // Lock for thread-safe access
-    private let interactionsLock = NSLock()
-    private let behaviorsLock = NSLock()
-    private let patternsLock = NSLock()
+    internal let interactionsLock = NSLock()
+    internal let behaviorsLock = NSLock()
+    internal let patternsLock = NSLock()
     
     // Settings keys
     private let learningEnabledKey = "AILearningEnabled"
-    private let lastTrainingKey = "AILastTrainingDate"
-    private let modelVersionKey = "AILocalModelVersion"
+    internal let lastTrainingKey = "AILastTrainingDate"
+    internal let modelVersionKey = "AILocalModelVersion"
     private let exportPasswordKey = "ExportPasswordHash"
     
     // Export password
@@ -110,8 +110,24 @@ class AILearningManager {
     
     /// Get the URL for the latest trained model (locally trained or server-provided)
     func getLatestModelURL() -> URL? {
-        // First check for server-provided model
-        if isServerSyncEnabled, let serverModelURL = BackdoorAIClient.shared.getLatestModelURL() {
+        // We'll only use the locally trained model in the synchronous version for safety
+        // Server model is only checked in the async version
+        
+        // Fall back to locally trained model
+        let modelPath = modelsDirectory.appendingPathComponent("model_\(currentModelVersion).mlmodel")
+        
+        // Check if file exists
+        if FileManager.default.fileExists(atPath: modelPath.path) {
+            return modelPath
+        }
+        
+        return nil
+    }
+    
+    /// Async version that properly awaits backend calls
+    func getLatestModelURLAsync() async -> URL? {
+        // First check for server-provided model - with proper await
+        if isServerSyncEnabled, let serverModelURL = await BackdoorAIClient.shared.getLatestModelURLAsync() {
             return serverModelURL
         }
         
@@ -538,7 +554,7 @@ class AILearningManager {
     }
     
     /// Save interactions to disk
-    private func saveInteractions() {
+    internal func saveInteractions() {
         interactionsLock.lock()
         defer { interactionsLock.unlock() }
         
@@ -552,7 +568,7 @@ class AILearningManager {
     }
     
     /// Save user behaviors to disk
-    private func saveBehaviors() {
+    internal func saveBehaviors() {
         behaviorsLock.lock()
         defer { behaviorsLock.unlock() }
         
@@ -566,7 +582,7 @@ class AILearningManager {
     }
     
     /// Save app usage patterns to disk
-    private func savePatterns() {
+    internal func savePatterns() {
         patternsLock.lock()
         defer { patternsLock.unlock() }
         

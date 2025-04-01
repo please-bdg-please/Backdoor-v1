@@ -139,12 +139,14 @@ final class CustomAIService {
                 tagger.string = lastUserMessage
                 let language = tagger.dominantLanguage
                 
-                Debug.shared.log(message: "Detected message language: \(language ?? "unknown")", type: .debug)
+                // Convert Optional<NLLanguage> to String for logging
+                let languageString = language?.rawValue ?? "unknown"
+                Debug.shared.log(message: "Detected message language: \(languageString)", type: .debug)
                 
                 // Set language context for better response generation
                 if let detectedLanguage = language {
                     var additionalContext: [String: Any] = context.additionalContext ?? [:]
-                    additionalContext["detectedLanguage"] = detectedLanguage
+                    additionalContext["detectedLanguage"] = detectedLanguage.rawValue
                     context.additionalContext = additionalContext
                 }
             }

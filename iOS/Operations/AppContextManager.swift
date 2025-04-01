@@ -22,6 +22,9 @@ final class AppContextManager {
     var currentState: AppContext? // Refers to AppContext from AppContext.swift
     private var commandHandlers: [String: (String, @escaping (String) -> Void) -> Void] = [:]
     private let commandQueue = DispatchQueue(label: "com.app.commandQueue")
+    
+    // Command history for AI prediction
+    var commandHistory: [(command: String, parameter: String, timestamp: Date)] = []
 
     private init() {}
 
