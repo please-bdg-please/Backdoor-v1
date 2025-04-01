@@ -104,6 +104,12 @@
 				3322FF512BFEE5B9001768D8 /* NukeExtensions in Frameworks */,
 				33BDD0A62C76EA4200AF6169 /* UIOnboarding in Frameworks */,
 				3322FF532BFEE5B9001768D8 /* NukeUI in Frameworks */,
+				334AD1D02D8B987600E12366 /* CryptoSwift in Frameworks */,
+				334AD1D12D8B987600E12367 /* SnapKit in Frameworks */,
+				334AD1D22D8B987600E12368 /* Lottie in Frameworks */,
+				334AD1D32D8B987600E12369 /* SwiftUIX in Frameworks */,
+				334AD1D42D8B987600E1236A /* Moya in Frameworks */,
+				334AD1D52D8B987600E1236B /* RswiftLibrary in Frameworks */,
 				33C0409E2C30DD3E00243D90 /* AlertKit in Frameworks */,
 				334AD1A12D8B987600E12345 /* SSNaturalLanguage in Frameworks */,
 				336EEE812C32367C0011188D /* ZIPFoundation in Frameworks */,
@@ -216,6 +222,12 @@
 				336EEE802C32367C0011188D /* ZIPFoundation */,
 				33BE87A42C72E1220044D245 /* SWCompression */,
 				33BDD0A52C76EA4200AF6169 /* UIOnboarding */,
+				334AD1C02D8B987600E12356 /* CryptoSwift */,
+				334AD1C12D8B987600E12357 /* SnapKit */,
+				334AD1C22D8B987600E12358 /* Lottie */,
+				334AD1C32D8B987600E12359 /* SwiftUIX */,
+				334AD1C42D8B987600E1235A /* Moya */,
+				334AD1C52D8B987600E1235B /* RswiftLibrary */,
 					334AD1A02D8B987600E12345 /* SSNaturalLanguage */,
 				33BDD0BF2C7866FE00AF6169 /* Vapor */,
 			);
@@ -263,6 +275,12 @@
 				336EEE7F2C32367C0011188D /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 				33BE87A32C72E1220044D245 /* XCRemoteSwiftPackageReference "SWCompression" */,
 				33BDD0A42C76EA4100AF6169 /* XCRemoteSwiftPackageReference "UIOnboarding-18" */,
+				334AD1B02D8B987600E12346 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
+				334AD1B12D8B987600E12347 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				334AD1B22D8B987600E12348 /* XCRemoteSwiftPackageReference "lottie-spm" */,
+				334AD1B32D8B987600E12349 /* XCRemoteSwiftPackageReference "SwiftUIX" */,
+				334AD1B42D8B987600E1234A /* XCRemoteSwiftPackageReference "Moya" */,
+				334AD1B52D8B987600E1234B /* XCRemoteSwiftPackageReference "R-swift" */,
 				33BDD0BE2C7866FE00AF6169 /* XCRemoteSwiftPackageReference "vapor" */,
 			);
 			preferredProjectObjectVersion = 56;
@@ -617,6 +635,84 @@
 			repositoryURL = "https://github.com/sparrowcode/AlertKit.git";
 			requirement = {
 				kind = upToNextMajorVersion;
+		334AD1B02D8B987600E12346 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.8.3;
+			};
+		};
+		334AD1B12D8B987600E12347 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.1;
+			};
+		};
+		334AD1B22D8B987600E12348 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.1;
+			};
+		};
+		334AD1B32D8B987600E12349 /* XCRemoteSwiftPackageReference "SwiftUIX" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftUIX/SwiftUIX.git";
+			requirement = {
+				branch = "master";
+				kind = branch;
+			};
+		};
+		334AD1B42D8B987600E1234A /* XCRemoteSwiftPackageReference "Moya" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Moya/Moya.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 15.0.0;
+			};
+		};
+		334AD1B52D8B987600E1234B /* XCRemoteSwiftPackageReference "R-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mac-cain13/R.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+		334AD1C02D8B987600E12356 /* CryptoSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 334AD1B02D8B987600E12346 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
+			productName = CryptoSwift;
+		};
+		334AD1C12D8B987600E12357 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 334AD1B12D8B987600E12347 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		334AD1C22D8B987600E12358 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 334AD1B22D8B987600E12348 /* XCRemoteSwiftPackageReference "lottie-spm" */;
+			productName = Lottie;
+		};
+		334AD1C32D8B987600E12359 /* SwiftUIX */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 334AD1B32D8B987600E12349 /* XCRemoteSwiftPackageReference "SwiftUIX" */;
+			productName = SwiftUIX;
+		};
+		334AD1C42D8B987600E1235A /* Moya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 334AD1B42D8B987600E1234A /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = Moya;
+		};
+		334AD1C52D8B987600E1235B /* RswiftLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 334AD1B52D8B987600E1234B /* XCRemoteSwiftPackageReference "R-swift" */;
+			productName = RswiftLibrary;
+		};
+			};
+		};
 				minimumVersion = 5.1.9;
 			};
 		};

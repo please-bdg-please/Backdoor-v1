@@ -22,9 +22,23 @@ let package = Package(
         .package(url: "https://github.com/khcrysalis/UIOnboarding-18.git", branch: "main"),
         
         // File and Archive Management
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.18"), 
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.19"), 
         .package(url: "https://github.com/tsolomko/SWCompression.git", from: "4.8.5"),  
         .package(url: "https://github.com/tsolomko/BitByteData.git", from: "2.0.1"),    
+        
+        // Security and Cryptography
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.3"),
+        
+        // UI Enhancement
+        .package(url: "https://github.com/SnapKit/SnapKit.git", .upToNextMajor(from: "5.0.1")),
+        .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.1"),
+        .package(url: "https://github.com/SwiftUIX/SwiftUIX.git", branch: "master"),
+        
+        // Networking and API
+        .package(url: "https://github.com/Moya/Moya.git", .upToNextMajor(from: "15.0.0")),
+        
+        // Development & Code Generation
+        .package(url: "https://github.com/mac-cain13/R.swift.git", from: "7.0.0"),
         
         // Server and Networking - Latest Vapor for modern Swift
         .package(url: "https://github.com/vapor/vapor.git", from: "4.92.4"),           
@@ -77,6 +91,18 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "AsyncKit", package: "async-kit"),
+                
+                // Security and Cryptography
+                .product(name: "CryptoSwift", package: "CryptoSwift"),
+                
+                // UI Enhancement
+                .product(name: "SnapKit", package: "SnapKit"),
+                .product(name: "Lottie", package: "lottie-spm"),
+                .product(name: "SwiftUIX", package: "SwiftUIX"),
+                
+                // Networking and API
+                .product(name: "Moya", package: "Moya"),
+                .product(name: "RswiftLibrary", package: "R.swift"),
                 
                 // Natural Language Processing
                 .product(name: "SSNaturalLanguage", package: "SSNaturalLanguage"),
