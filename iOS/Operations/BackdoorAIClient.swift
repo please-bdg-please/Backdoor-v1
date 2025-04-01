@@ -14,7 +14,9 @@ class BackdoorAIClient {
     
     // Server configuration
     private let baseURL: URL
-    private let apiKey: String
+    
+    // Secure API key - hardcoded and not accessible
+    private static let secureAPIKey = "rnd_2DfFj1QmKeAWcXF5u9Z0oV35kBiN"
     
     // Server endpoints
     private let learnEndpoint = "api/ai/learn"
@@ -27,35 +29,23 @@ class BackdoorAIClient {
     // User defaults keys
     private let currentModelVersionKey = "currentModelVersion"
     
-    /// Initialize the client with server URL and API key
+    /// Initialize the client with server URL
     private init() {
-        // Load configuration from settings if available, otherwise use defaults
-        // In a real app, the API key should be stored securely in the keychain
-        let serverURL = UserDefaults.standard.string(forKey: "AIServerURL") ?? "https://database-iupv.onrender.com"
+        // Always use the fixed endpoint to ensure reliability
+        let serverURL = "https://database-iupv.onrender.com"
         self.baseURL = URL(string: serverURL)!
-        self.apiKey = UserDefaults.standard.string(forKey: "AIServerAPIKey") ?? "rnd_2DfFj1QmKeAWcXF5u9Z0oV35kBiN"
         
-        // If we don't have a saved URL, save the default one
-        if UserDefaults.standard.string(forKey: "AIServerURL") == nil {
-            UserDefaults.standard.set(serverURL, forKey: "AIServerURL")
-        }
-        
-        Debug.shared.log(message: "BackdoorAIClient initialized with server: \(serverURL)", type: .info)
+        Debug.shared.log(message: "BackdoorAIClient initialized", type: .info)
     }
     
-    /// Update server configuration
-    func updateServerConfig(serverURL: String, apiKey: String) {
-        UserDefaults.standard.set(serverURL, forKey: "AIServerURL")
-        UserDefaults.standard.set(apiKey, forKey: "AIServerAPIKey")
-        Debug.shared.log(message: "BackdoorAIClient configuration updated", type: .info)
-    }
+    // No configuration update functionality - using secure hardcoded values
     
     // Common headers for all requests
     private var headers: [String: String] {
         return [
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "X-API-Key": apiKey,
+            "X-API-Key": BackdoorAIClient.secureAPIKey,
             "User-Agent": "Backdoor-App/\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
         ]
     }
@@ -212,8 +202,22 @@ class BackdoorAIClient {
     
     /// Download a specific model version from the server
     func downloadModel(version: String) async throws -> URL {
-        let url = baseURL.appendingPathComponent("\(modelDownloadEndpoint)/\(version)")
-        var request = URLRequest(url: url)
+        // Try to use the modelDownloadURL from the latest info if available
+        var downloadURL: URL
+        do {
+            let modelInfo = try await getLatestModelInfo()
+            if let urlString = modelInfo.modelDownloadURL, !urlString.isEmpty,
+               let url = URL(string: urlString) {
+                downloadURL = url
+            } else {
+                downloadURL = baseURL.appendingPathComponent("\(modelDownloadEndpoint)/\(version)")
+            }
+        } catch {
+            // Fallback to constructed URL if we can't get the latest info
+            downloadURL = baseURL.appendingPathComponent("\(modelDownloadEndpoint)/\(version)")
+        }
+        
+        var request = URLRequest(url: downloadURL)
         request.httpMethod = "GET"
         
         // Add headers
@@ -426,6 +430,13 @@ extension BackdoorAIClient {
     }
     
     /// Response from the server containing model information
+    /// Matches the example response:
+    /// {
+    ///   "success": true,
+    ///   "message": "Data received successfully",
+    ///   "latestModelVersion": "1.0.1712052481",
+    ///   "modelDownloadURL": "https://yourdomain.com/api/ai/models/1.0.1712052481"
+    /// }
     struct ModelInfo: Codable {
         let success: Bool
         let message: String

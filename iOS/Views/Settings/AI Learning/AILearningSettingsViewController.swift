@@ -93,7 +93,7 @@ class AILearningSettingsViewController: UITableViewController {
         case .settings:
             return 1
         case .serverSettings:
-            return 2
+            return 1 // Removed server configuration option
         case .status:
             return 5
         case .actions:
@@ -126,24 +126,14 @@ class AILearningSettingsViewController: UITableViewController {
             return cell
             
         case .serverSettings:
-            if indexPath.row == 0 {
-                let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
-                cell.textLabel?.text = "Enable Server Sync"
-                cell.switchControl.isOn = AILearningManager.shared.isServerSyncEnabled
-                cell.switchValueChanged = { isOn in
-                    AILearningManager.shared.setServerSyncEnabled(isOn)
-                    self.tableView.reloadSections([Section.serverSettings.rawValue, Section.actions.rawValue], with: .automatic)
-                }
-                return cell
-            } else {
-                let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
-                cell.textLabel?.text = "Configure Server"
-                cell.accessoryType = .disclosureIndicator
-                cell.selectionStyle = .default
-                cell.isUserInteractionEnabled = AILearningManager.shared.isServerSyncEnabled
-                cell.textLabel?.isEnabled = AILearningManager.shared.isServerSyncEnabled
-                return cell
+            let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+            cell.textLabel?.text = "Enable Server Sync"
+            cell.switchControl.isOn = AILearningManager.shared.isServerSyncEnabled
+            cell.switchValueChanged = { isOn in
+                AILearningManager.shared.setServerSyncEnabled(isOn)
+                self.tableView.reloadSections([Section.serverSettings.rawValue, Section.actions.rawValue], with: .automatic)
             }
+            return cell
             
         case .status:
             let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
@@ -226,9 +216,7 @@ class AILearningSettingsViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        if indexPath.section == Section.serverSettings.rawValue && indexPath.row == 1 {
-            configureServer()
-        } else if indexPath.section == Section.actions.rawValue {
+        if indexPath.section == Section.actions.rawValue {
             if indexPath.row == 0 {
                 trainModelNow()
             } else if indexPath.row == 1 {
@@ -243,53 +231,7 @@ class AILearningSettingsViewController: UITableViewController {
     
     // MARK: - Actions
     
-    private func configureServer() {
-        let alert = UIAlertController(
-            title: "Server Configuration",
-            message: "Enter the server URL and API key for AI learning synchronization.",
-            preferredStyle: .alert
-        )
-        
-        // Add URL text field
-        alert.addTextField { textField in
-            textField.placeholder = "Server URL"
-            textField.text = UserDefaults.standard.string(forKey: "AIServerURL") ?? "https://database-iupv.onrender.com"
-            textField.clearButtonMode = .whileEditing
-            textField.autocorrectionType = .no
-            textField.autocapitalizationType = .none
-            textField.keyboardType = .URL
-        }
-        
-        // Add API key text field
-        alert.addTextField { textField in
-            textField.placeholder = "API Key"
-            textField.text = UserDefaults.standard.string(forKey: "AIServerAPIKey") ?? ""
-            textField.clearButtonMode = .whileEditing
-            textField.autocorrectionType = .no
-            textField.autocapitalizationType = .none
-            textField.isSecureTextEntry = true
-        }
-        
-        // Cancel action
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        // Save action
-        alert.addAction(UIAlertAction(title: "Save", style: .default) { [weak self, weak alert] _ in
-            guard let serverURL = alert?.textFields?[0].text, !serverURL.isEmpty,
-                  let apiKey = alert?.textFields?[1].text, !apiKey.isEmpty else {
-                self?.showErrorAlert(message: "Server URL and API key are required")
-                return
-            }
-            
-            // Update server configuration
-            BackdoorAIClient.shared.updateServerConfig(serverURL: serverURL, apiKey: apiKey)
-            
-            // Show confirmation
-            self?.showInfoAlert(title: "Server Configuration", message: "Server settings have been updated successfully.")
-        })
-        
-        present(alert, animated: true)
-    }
+    // Server configuration is now secured with hardcoded values and not user-configurable
     
     private func syncWithServerNow() {
         // Show activity indicator
