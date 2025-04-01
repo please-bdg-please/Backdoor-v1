@@ -25,8 +25,20 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
     private var _isProcessingMessage = false
     private var isProcessingMessage: Bool {
         get { stateQueue.sync { _isProcessingMessage } }
-        set { stateQueue.sync { _isProcessingMessage = newValue } }
+        set { 
+            stateQueue.sync { _isProcessingMessage = newValue }
+            
+            // Update UI based on processing state
+            DispatchQueue.main.async { [weak self] in
+                if let self = self {
+                    self.updateProcessingState(isProcessing: newValue)
+                }
+            }
+        }
     }
+    
+    // Animation view for sending state
+    private var sendingAnimation: LottieAnimationView?
 
     // MARK: - Callbacks
 
@@ -211,27 +223,102 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         tableView.backgroundColor = .systemGray6
         tableView.separatorStyle = .none
         tableView.keyboardDismissMode = .interactive
+        
+        // Add pull-to-refresh support
+        let refreshControl = UIRefreshControl()
+        refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
+        refreshControl.addTarget(self, action: #selector(refreshMessages), for: .valueChanged)
+        tableView.refreshControl = refreshControl
 
         // iOS 15+ specific customization
         if #available(iOS 15.0, *) {
             tableView.sectionHeaderTopPadding = 0
         }
+        
+        // Setup empty state view for when no messages exist
+        setupEmptyStateView()
 
         view.addSubview(tableView)
     }
+    
+    private func setupEmptyStateView() {
+        // Create an empty state view
+        let emptyView = UIView()
+        emptyView.isHidden = true
+        emptyView.backgroundColor = .clear
+        
+        // Add Lottie animation for empty state
+        let animationView = emptyView.addLottieAnimation(
+            name: "typing_indicator", 
+            loopMode: .loop,
+            size: CGSize(width: 100, height: 50)
+        )
+        
+        // Create welcome label
+        let welcomeLabel = UILabel()
+        welcomeLabel.text = "Welcome to the AI Assistant. Ask me anything about app signing, sources, or using Backdoor."
+        welcomeLabel.textAlignment = .center
+        welcomeLabel.textColor = .secondaryLabel
+        welcomeLabel.font = .systemFont(ofSize: 16)
+        welcomeLabel.numberOfLines = 0
+        emptyView.addSubview(welcomeLabel)
+        
+        // Setup constraints
+        animationView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalToSuperview()
+            make.width.equalTo(100)
+            make.height.equalTo(50)
+        }
+        
+        welcomeLabel.snp.makeConstraints { make in
+            make.top.equalTo(animationView.snp.bottom).offset(16)
+            make.centerX.equalToSuperview()
+            make.leading.trailing.equalToSuperview().inset(30)
+        }
+        
+        // Add to table view
+        tableView.backgroundView = emptyView
+    }
+    
+    @objc private func refreshMessages() {
+        // Reload messages from database
+        loadMessages()
+        
+        // End refreshing
+        tableView.refreshControl?.endRefreshing()
+    }
+    
+    // Update UI when message processing state changes
+    private func updateProcessingState(isProcessing: Bool) {
+        if isProcessing {
+            // Hide send button, show animation
+            sendButton.isHidden = true
+            sendingAnimation?.isHidden = false
+            sendingAnimation?.play()
+        } else {
+            // Hide animation, show send button
+            sendingAnimation?.stop()
+            sendingAnimation?.isHidden = true
+            sendButton.isHidden = false
+        }
+    }
 
     private func setupInputControls() {
-        // Input container
+        // Input container with enhanced styling
         inputContainer.backgroundColor = .systemBackground
-        inputContainer.layer.shadowColor = UIColor.black.cgColor
-        inputContainer.layer.shadowOpacity = 0.1
-        inputContainer.layer.shadowOffset = CGSize(width: 0, height: -2)
-        inputContainer.layer.shadowRadius = 4
+        inputContainer.applyCardStyling(
+            cornerRadius: 12,
+            shadowOpacity: 0.15,
+            backgroundColor: .systemBackground
+        )
         view.addSubview(inputContainer)
 
-        // Text field
+        // Text field with improved styling
         textField.placeholder = "Ask me anything..."
-        textField.borderStyle = .roundedRect
+        textField.borderStyle = .none
+        textField.backgroundColor = UIColor.systemGray6
+        textField.layer.cornerRadius = 8
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
         textField.leftViewMode = .always
         textField.returnKeyType = .send
@@ -239,18 +326,65 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         textField.autocorrectionType = .default
         textField.spellCheckingType = .default
         textField.enablesReturnKeyAutomatically = true
+        textField.layer.masksToBounds = true
         inputContainer.addSubview(textField)
 
-        // Send button
+        // Create animation container for the sending animation
+        let animationContainer = UIView()
+        animationContainer.backgroundColor = .clear
+        inputContainer.addSubview(animationContainer)
+        
+        // Send button with enhanced styling
         sendButton.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
         sendButton.tintColor = .systemBlue
+        sendButton.backgroundColor = .clear
         sendButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
         inputContainer.addSubview(sendButton)
+        
+        // Add gradient to sendButton for nicer appearance
+        sendButton.convertToGradientButton(
+            colors: [
+                UIColor.systemBlue,
+                UIColor(red: 0.1, green: 0.6, blue: 1.0, alpha: 1.0)
+            ]
+        )
 
-        // Activity indicator
+        // Activity indicator (keeping for compatibility)
         activityIndicator.color = .systemGray
         activityIndicator.hidesWhenStopped = true
         inputContainer.addSubview(activityIndicator)
+        
+        // Setup constraints with SnapKit
+        textField.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(12)
+            make.centerY.equalToSuperview()
+            make.trailing.equalTo(sendButton.snp.leading).offset(-12)
+            make.height.equalTo(36)
+        }
+        
+        sendButton.snp.makeConstraints { make in
+            make.trailing.equalToSuperview().offset(-12)
+            make.centerY.equalToSuperview()
+            make.width.height.equalTo(40)
+        }
+        
+        animationContainer.snp.makeConstraints { make in
+            make.center.equalTo(sendButton)
+            make.width.height.equalTo(40)
+        }
+        
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalTo(sendButton)
+            make.width.height.equalTo(20)
+        }
+        
+        // Add Lottie animation for sending state
+        sendingAnimation = animationContainer.addLottieAnimation(
+            name: "loading", 
+            loopMode: .loop,
+            size: CGSize(width: 40, height: 40)
+        )
+        sendingAnimation?.isHidden = true
     }
 
     private func setupConstraints() {
@@ -360,10 +494,21 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Handle the case where no messages are found
         if fetchedMessages.isEmpty && messages.isEmpty {
             Debug.shared.log(message: "No messages found for chat session", type: .debug)
+            // Show empty state view when no messages exist
+            tableView.backgroundView?.isHidden = false
         } else {
             messages = fetchedMessages
+            // Hide empty state view when messages exist
+            tableView.backgroundView?.isHidden = true
             tableView.reloadData()
             scrollToBottom(animated: false)
+        }
+        
+        // Update the UI with fade animation if there's a significant change
+        if !messages.isEmpty != !fetchedMessages.isEmpty {
+            UIView.animate(withDuration: 0.3) {
+                self.tableView.backgroundView?.alpha = fetchedMessages.isEmpty ? 1.0 : 0.0
+            }
         }
     }
 
