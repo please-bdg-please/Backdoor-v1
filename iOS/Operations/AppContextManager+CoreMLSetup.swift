@@ -56,12 +56,7 @@ extension AppContextManager {
     /// Register commands related to CoreML and AI features
     private func registerCoreMLCommands() {
         // Command to analyze text with ML model
-        registerCommand("analyze text") { [weak self] text, completion in
-            guard let self = self else {
-                completion("System error")
-                return
-            }
-            
+        registerCommand("analyze text") { text, completion in
             CoreMLManager.shared.predictIntent(from: text) { result in
                 switch result {
                 case .success(let prediction):

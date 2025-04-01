@@ -170,8 +170,7 @@ extension AppContextManager {
     
     // MARK: - Command History and Prediction
     
-    /// Command history for prediction
-    private var commandHistory: [(command: String, parameter: String, timestamp: Date)] = []
+    // Command history is now stored in the main AppContextManager class
     
     /// Updates the command history for better predictions
     private func updateCommandHistory(command: String, parameter: String) {
