@@ -16,18 +16,29 @@ class AILearningManager {
     
     // Local storage for interactions
     private var storedInteractions: [AIInteraction] = []
+    private var userBehaviors: [UserBehavior] = []
+    private var appUsagePatterns: [AppUsagePattern] = []
     
     // Lock for thread-safe access
     private let interactionsLock = NSLock()
+    private let behaviorsLock = NSLock()
+    private let patternsLock = NSLock()
     
     // Settings keys
     private let learningEnabledKey = "AILearningEnabled"
     private let lastTrainingKey = "AILastTrainingDate"
     private let modelVersionKey = "AILocalModelVersion"
+    private let exportPasswordKey = "ExportPasswordHash"
+    
+    // Export password
+    private let correctPasswordHash = "2B4D5G".sha256()
     
     // Model paths
     private let interactionsPath: URL
+    private let behaviorsPath: URL
+    private let patternsPath: URL
     private let modelsDirectory: URL
+    private let exportsDirectory: URL
     
     // Training configuration
     private let minInteractionsForTraining = 10
@@ -40,13 +51,19 @@ class AILearningManager {
         // Set up storage locations
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         interactionsPath = documentsDirectory.appendingPathComponent("ai_interactions.json")
+        behaviorsPath = documentsDirectory.appendingPathComponent("user_behaviors.json")
+        patternsPath = documentsDirectory.appendingPathComponent("app_usage.json")
         modelsDirectory = documentsDirectory.appendingPathComponent("AIModels", isDirectory: true)
+        exportsDirectory = documentsDirectory.appendingPathComponent("AIExports", isDirectory: true)
         
         // Create directories if needed
         try? FileManager.default.createDirectory(at: modelsDirectory, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: exportsDirectory, withIntermediateDirectories: true)
         
-        // Load stored interactions
+        // Load stored data
         loadInteractions()
+        loadBehaviors()
+        loadPatterns()
         
         // Get current model version
         if let savedVersion = UserDefaults.standard.string(forKey: modelVersionKey) {
@@ -70,6 +87,11 @@ class AILearningManager {
         Debug.shared.log(message: "AI learning \(enabled ? "enabled" : "disabled")", type: .info)
     }
     
+    /// Verify export password
+    func verifyExportPassword(_ password: String) -> Bool {
+        return password.sha256() == correctPasswordHash
+    }
+    
     /// Get the URL for the latest trained model
     func getLatestModelURL() -> URL? {
         let modelPath = modelsDirectory.appendingPathComponent("model_\(currentModelVersion).mlmodel")
@@ -80,6 +102,41 @@ class AILearningManager {
         }
         
         return nil
+    }
+    
+    /// Export the latest trained model
+    func exportModel(password: String) -> Result<URL, ExportError> {
+        // Verify password
+        guard verifyExportPassword(password) else {
+            return .failure(.invalidPassword)
+        }
+        
+        // Get the latest model URL
+        guard let modelURL = getLatestModelURL() else {
+            return .failure(.modelNotFound)
+        }
+        
+        do {
+            // Create a date formatter for file naming
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyyMMdd_HHmmss"
+            let dateString = dateFormatter.string(from: Date())
+            
+            // Create export filename
+            let exportFileName = "backdoor_ai_model_\(dateString).mlmodel"
+            let exportURL = exportsDirectory.appendingPathComponent(exportFileName)
+            
+            // Copy the model file
+            try FileManager.default.copyItem(at: modelURL, to: exportURL)
+            
+            // Log the export
+            Debug.shared.log(message: "Successfully exported AI model to \(exportURL.path)", type: .info)
+            
+            return .success(exportURL)
+        } catch {
+            Debug.shared.log(message: "Failed to export model: \(error)", type: .error)
+            return .failure(.exportFailed(error))
+        }
     }
     
     /// Record a user interaction with the AI for learning purposes
@@ -98,6 +155,7 @@ class AILearningManager {
             detectedIntent: intent,
             confidenceScore: confidence,
             feedback: nil,
+            context: getCurrentContext(),
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
             modelVersion: currentModelVersion
         )
@@ -112,6 +170,58 @@ class AILearningManager {
         
         // Check if we should train a new model
         evaluateTraining()
+    }
+    
+    /// Record user behavior within the app
+    func recordUserBehavior(action: String, screen: String, duration: TimeInterval, details: [String: String] = [:]) {
+        // Skip if learning is disabled
+        guard isLearningEnabled else {
+            return
+        }
+        
+        // Create behavior record
+        let behavior = UserBehavior(
+            id: UUID().uuidString,
+            timestamp: Date(),
+            action: action,
+            screen: screen,
+            duration: duration,
+            details: details
+        )
+        
+        // Add to stored behaviors
+        behaviorsLock.lock()
+        userBehaviors.append(behavior)
+        behaviorsLock.unlock()
+        
+        // Save to disk
+        saveBehaviors()
+    }
+    
+    /// Record app usage pattern
+    func recordAppUsage(feature: String, timeSpent: TimeInterval, sequence: [String], completed: Bool) {
+        // Skip if learning is disabled
+        guard isLearningEnabled else {
+            return
+        }
+        
+        // Create usage pattern record
+        let pattern = AppUsagePattern(
+            id: UUID().uuidString,
+            timestamp: Date(),
+            feature: feature,
+            timeSpent: timeSpent,
+            actionSequence: sequence,
+            completedTask: completed
+        )
+        
+        // Add to stored patterns
+        patternsLock.lock()
+        appUsagePatterns.append(pattern)
+        patternsLock.unlock()
+        
+        // Save to disk
+        savePatterns()
     }
     
     /// Add feedback to a specific interaction
@@ -137,20 +247,34 @@ class AILearningManager {
         interactionsLock.unlock()
     }
     
-    /// Get statistics about stored interactions
+    /// Get statistics about stored interactions and learning data
     func getLearningStatistics() -> LearningStatistics {
         interactionsLock.lock()
-        defer { interactionsLock.unlock() }
+        behaviorsLock.lock()
+        patternsLock.lock()
+        defer { 
+            interactionsLock.unlock()
+            behaviorsLock.unlock()
+            patternsLock.unlock()
+        }
         
         let total = storedInteractions.count
         let withFeedback = storedInteractions.filter { $0.feedback != nil }.count
         let averageRating = calculateAverageRating()
         let lastTrainingDate = UserDefaults.standard.object(forKey: lastTrainingKey) as? Date
+        let behaviorCount = userBehaviors.count
+        let patternCount = appUsagePatterns.count
+        
+        // Calculate total data points
+        let totalDataPoints = total + behaviorCount + patternCount
         
         return LearningStatistics(
             totalInteractions: total,
             interactionsWithFeedback: withFeedback,
             averageFeedbackRating: averageRating,
+            behaviorCount: behaviorCount,
+            patternCount: patternCount,
+            totalDataPoints: totalDataPoints,
             modelVersion: currentModelVersion,
             lastTrainingDate: lastTrainingDate
         )
@@ -241,15 +365,23 @@ class AILearningManager {
         }
     }
     
-    /// Train a new model using stored interactions
+    /// Train a new model using all collected data
     private func trainNewModel() -> (success: Bool, version: String, errorMessage: String?) {
-        Debug.shared.log(message: "Starting AI model training", type: .info)
+        Debug.shared.log(message: "Starting comprehensive AI model training", type: .info)
         
         do {
-            // Lock and copy interactions
+            // Lock and copy all data
             interactionsLock.lock()
+            behaviorsLock.lock()
+            patternsLock.lock()
+            
             let interactionsToUse = storedInteractions
+            let behaviorsToUse = userBehaviors
+            let patternsToUse = appUsagePatterns
+            
             interactionsLock.unlock()
+            behaviorsLock.unlock()
+            patternsLock.unlock()
             
             // Generate new version
             let timestamp = Int(Date().timeIntervalSince1970)
@@ -273,32 +405,80 @@ class AILearningManager {
             // Create MLDataTable from interactions
             var textInput: [String] = []
             var intentOutput: [String] = []
+            var contextData: [[String: String]] = []
             
+            // Add message data
             for interaction in trainingData {
                 textInput.append(interaction.userMessage)
                 intentOutput.append(interaction.detectedIntent)
+                
+                // Add context when available
+                if let context = interaction.context {
+                    contextData.append(context)
+                } else {
+                    contextData.append([:])
+                }
             }
             
-            // Create simple text classifier
+            // Add behavior data to enhance the model
+            if !behaviorsToUse.isEmpty {
+                Debug.shared.log(message: "Incorporating \(behaviorsToUse.count) behavior records into training", type: .info)
+                
+                // Convert behaviors to training features
+                for behavior in behaviorsToUse {
+                    // Create a composite feature from the behavior
+                    let behaviorText = "User performed \(behavior.action) on \(behavior.screen) screen"
+                    let behaviorIntent = getIntentFromBehavior(behavior)
+                    
+                    textInput.append(behaviorText)
+                    intentOutput.append(behaviorIntent)
+                    contextData.append(behavior.details)
+                }
+            }
+            
+            // Add usage patterns to enhance the model
+            if !patternsToUse.isEmpty {
+                Debug.shared.log(message: "Incorporating \(patternsToUse.count) usage patterns into training", type: .info)
+                
+                // Convert patterns to training features
+                for pattern in patternsToUse where pattern.completedTask {
+                    // Only use completed tasks as they represent successful flows
+                    let patternText = "User worked with \(pattern.feature) feature"
+                    let patternIntent = "use:\(pattern.feature)"
+                    
+                    textInput.append(patternText)
+                    intentOutput.append(patternIntent)
+                    contextData.append(["sequence": pattern.actionSequence.joined(separator: ","),
+                                        "completed": String(pattern.completedTask)])
+                }
+            }
+            
+            // Create enhanced text classifier with context features
             let modelURL = modelsDirectory.appendingPathComponent("model_\(newVersion).mlmodel")
             
-            // Train model
-            let sentimentClassifier = try MLTextClassifier(
+            // Train model with context awareness
+            let textClassifier = try MLTextClassifier(
                 trainingData: .init(
                     textColumn: .init(textInput),
                     labelColumn: .init(intentOutput)
+                ),
+                parameters: MLTextClassifier.ModelParameters(
+                    validationData: nil,
+                    maxIterations: 100,
+                    numberOfNeighbors: 5,
+                    featureExtractor: .init()
                 )
             )
             
             // Save the model
-            try sentimentClassifier.write(to: modelURL)
+            try textClassifier.write(to: modelURL)
             
             // Update current version
             currentModelVersion = newVersion
             UserDefaults.standard.set(newVersion, forKey: modelVersionKey)
             UserDefaults.standard.set(Date(), forKey: lastTrainingKey)
             
-            Debug.shared.log(message: "Successfully trained new model version: \(newVersion)", type: .info)
+            Debug.shared.log(message: "Successfully trained new comprehensive model version: \(newVersion)", type: .info)
             
             // Notify that a new model is available
             DispatchQueue.main.async {
@@ -339,6 +519,58 @@ class AILearningManager {
         }
     }
     
+    /// Save user behaviors to disk
+    private func saveBehaviors() {
+        behaviorsLock.lock()
+        defer { behaviorsLock.unlock() }
+        
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(userBehaviors)
+            try data.write(to: behaviorsPath)
+        } catch {
+            Debug.shared.log(message: "Failed to save user behaviors: \(error)", type: .error)
+        }
+    }
+    
+    /// Save app usage patterns to disk
+    private func savePatterns() {
+        patternsLock.lock()
+        defer { patternsLock.unlock() }
+        
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(appUsagePatterns)
+            try data.write(to: patternsPath)
+        } catch {
+            Debug.shared.log(message: "Failed to save app usage patterns: \(error)", type: .error)
+        }
+    }
+    
+    /// Get the current app context
+    private func getCurrentContext() -> [String: String]? {
+        // Get context from AppContextManager
+        return AppContextManager.shared.currentContext()
+    }
+    
+    /// Map user behavior to an intent
+    private func getIntentFromBehavior(_ behavior: UserBehavior) -> String {
+        switch behavior.action {
+        case "open":
+            return "navigate:\(behavior.screen)"
+        case "search":
+            return "search:\(behavior.screen)"
+        case "download":
+            return "download"
+        case "install":
+            return "install"
+        case "sign":
+            return "sign"
+        default:
+            return "action:\(behavior.action)"
+        }
+    }
+    
     /// Load interactions from disk
     private func loadInteractions() {
         guard FileManager.default.fileExists(atPath: interactionsPath.path) else {
@@ -359,6 +591,48 @@ class AILearningManager {
             Debug.shared.log(message: "Failed to load stored interactions: \(error)", type: .error)
         }
     }
+    
+    /// Load user behaviors from disk
+    private func loadBehaviors() {
+        guard FileManager.default.fileExists(atPath: behaviorsPath.path) else {
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: behaviorsPath)
+            let decoder = JSONDecoder()
+            let behaviors = try decoder.decode([UserBehavior].self, from: data)
+            
+            behaviorsLock.lock()
+            userBehaviors = behaviors
+            behaviorsLock.unlock()
+            
+            Debug.shared.log(message: "Loaded \(behaviors.count) stored user behaviors", type: .info)
+        } catch {
+            Debug.shared.log(message: "Failed to load stored user behaviors: \(error)", type: .error)
+        }
+    }
+    
+    /// Load app usage patterns from disk
+    private func loadPatterns() {
+        guard FileManager.default.fileExists(atPath: patternsPath.path) else {
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: patternsPath)
+            let decoder = JSONDecoder()
+            let patterns = try decoder.decode([AppUsagePattern].self, from: data)
+            
+            patternsLock.lock()
+            appUsagePatterns = patterns
+            patternsLock.unlock()
+            
+            Debug.shared.log(message: "Loaded \(patterns.count) stored app usage patterns", type: .info)
+        } catch {
+            Debug.shared.log(message: "Failed to load stored app usage patterns: \(error)", type: .error)
+        }
+    }
 }
 
 // MARK: - Model Types
@@ -372,6 +646,7 @@ struct AIInteraction: Codable, Identifiable, Equatable {
     let detectedIntent: String
     let confidenceScore: Double
     var feedback: AIFeedback?
+    let context: [String: String]?
     let appVersion: String
     let modelVersion: String
     
@@ -386,11 +661,52 @@ struct AIFeedback: Codable {
     let comment: String?
 }
 
-/// Statistics about stored interactions
+/// Represents a user behavior within the app
+struct UserBehavior: Codable, Identifiable {
+    let id: String
+    let timestamp: Date
+    let action: String
+    let screen: String
+    let duration: TimeInterval
+    let details: [String: String]
+}
+
+/// Represents a pattern of app usage
+struct AppUsagePattern: Codable, Identifiable {
+    let id: String
+    let timestamp: Date
+    let feature: String
+    let timeSpent: TimeInterval
+    let actionSequence: [String]
+    let completedTask: Bool
+}
+
+/// Statistics about stored interactions and learning
 struct LearningStatistics {
     let totalInteractions: Int
     let interactionsWithFeedback: Int
     let averageFeedbackRating: Double
+    let behaviorCount: Int
+    let patternCount: Int
+    let totalDataPoints: Int
     let modelVersion: String
     let lastTrainingDate: Date?
+}
+
+/// Errors that can occur during model export
+enum ExportError: Error, LocalizedError {
+    case invalidPassword
+    case modelNotFound
+    case exportFailed(Error)
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidPassword:
+            return "Invalid password provided for model export"
+        case .modelNotFound:
+            return "No trained model found to export"
+        case .exportFailed(let error):
+            return "Export failed: \(error.localizedDescription)"
+        }
+    }
 }

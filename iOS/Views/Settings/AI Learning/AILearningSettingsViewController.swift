@@ -23,6 +23,7 @@ class AILearningSettingsViewController: UITableViewController {
         case settings = 1
         case status = 2
         case actions = 3
+        case export = 4
     }
     
     // MARK: - Lifecycle
@@ -81,7 +82,7 @@ class AILearningSettingsViewController: UITableViewController {
     // MARK: - Table View Data Source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 4
+        return 5
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -91,9 +92,11 @@ class AILearningSettingsViewController: UITableViewController {
         case .settings:
             return 1
         case .status:
-            return 3
+            return 5
         case .actions:
             return 2
+        case .export:
+            return 1
         case .none:
             return 0
         }
@@ -129,8 +132,12 @@ class AILearningSettingsViewController: UITableViewController {
                 cell.textLabel?.text = "Current model version: \(stats.modelVersion)"
             } else if indexPath.row == 1 {
                 cell.textLabel?.text = "Stored interactions: \(stats.totalInteractions)"
-            } else {
+            } else if indexPath.row == 2 {
                 cell.textLabel?.text = "Average feedback rating: \(String(format: "%.1f", stats.averageFeedbackRating))"
+            } else if indexPath.row == 3 {
+                cell.textLabel?.text = "User behaviors tracked: \(stats.behaviorCount)"
+            } else {
+                cell.textLabel?.text = "Total learning data points: \(stats.totalDataPoints)"
             }
             
             return cell
@@ -153,6 +160,13 @@ class AILearningSettingsViewController: UITableViewController {
             
             return cell
             
+        case .export:
+            let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
+            cell.textLabel?.text = "Export Trained Model"
+            cell.accessoryType = .disclosureIndicator
+            cell.textLabel?.textColor = .systemBlue
+            return cell
+            
         case .none:
             return UITableViewCell()
         }
@@ -168,6 +182,8 @@ class AILearningSettingsViewController: UITableViewController {
             return "Status"
         case .actions:
             return "Actions"
+        case .export:
+            return "Advanced"
         case .none:
             return nil
         }
@@ -182,10 +198,87 @@ class AILearningSettingsViewController: UITableViewController {
             } else {
                 promptClearInteractions()
             }
+        } else if indexPath.section == Section.export.rawValue {
+            promptExportModel()
         }
     }
     
     // MARK: - Actions
+    
+    private func promptExportModel() {
+        let alert = UIAlertController(
+            title: "Export Trained Model",
+            message: "This feature allows exporting your trained AI model. Please enter the required password to continue.",
+            preferredStyle: .alert
+        )
+        
+        // Add text field for password
+        alert.addTextField { textField in
+            textField.placeholder = "Enter password"
+            textField.isSecureTextEntry = true
+            textField.clearButtonMode = .whileEditing
+        }
+        
+        // Cancel action
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        // Export action
+        alert.addAction(UIAlertAction(title: "Export", style: .default) { [weak self, weak alert] _ in
+            guard let password = alert?.textFields?.first?.text, !password.isEmpty else {
+                self?.showErrorAlert(message: "Password is required")
+                return
+            }
+            
+            self?.exportModel(password: password)
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    private func exportModel(password: String) {
+        // Show activity indicator
+        activityIndicator.startAnimating()
+        
+        // Perform export
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let result = AILearningManager.shared.exportModel(password: password)
+            
+            DispatchQueue.main.async {
+                self?.activityIndicator.stopAnimating()
+                
+                switch result {
+                case .success(let exportURL):
+                    self?.showExportSuccess(exportURL: exportURL)
+                case .failure(let error):
+                    self?.showErrorAlert(message: error.localizedDescription)
+                }
+            }
+        }
+    }
+    
+    private func showExportSuccess(exportURL: URL) {
+        let alert = UIAlertController(
+            title: "Export Successful",
+            message: "Model successfully exported to:\n\(exportURL.lastPathComponent)\n\nYou can find this file in the app's documents directory.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        present(alert, animated: true)
+    }
+    
+    private func showErrorAlert(message: String) {
+        let alert = UIAlertController(
+            title: "Error",
+            message: message,
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        present(alert, animated: true)
+    }
     
     private func trainModelNow() {
         // Show activity indicator
