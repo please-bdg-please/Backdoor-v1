@@ -23,9 +23,9 @@ all: package
 
 package: resolve-packages build
 
-# Explicitly resolve Swift Package dependencies before building
+# Explicitly resolve Swift Package dependencies before building (cache-friendly)
 resolve-packages:
-	@echo "Resolving Swift Package dependencies..."
+	@echo "Resolving Swift Package dependencies (preserving caches)..."
 	@mkdir -p $(SPM_CACHE)
 	@set -o pipefail; \
 		xcodebuild \
@@ -33,11 +33,13 @@ resolve-packages:
 		-project '$(NAME).xcodeproj' \
 		-scheme $(SCHEME) \
 		-scmProvider system \
-		-clonedSourcePackagesDirPath $(SPM_CACHE)
+		-clonedSourcePackagesDirPath $(SPM_CACHE) \
+		-disableAutomaticPackageResolution=NO \
+		-skipPackagePluginValidation=YES
 
-# Main build step
+# Main build step with improved package integration
 build:
-	@echo "Building project..."
+	@echo "Building project with optimized package integration..."
 	@rm -rf $(APP_TMP)
 	
 	@set -o pipefail; \
@@ -53,6 +55,9 @@ build:
 		CODE_SIGNING_ALLOWED=NO \
 		DSTROOT=$(APP_TMP)/install \
 		ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
+		SWIFT_ACTIVE_COMPILATION_CONDITIONS="RELEASE $(CONFIGURATION)" \
+		SWIFT_INCLUDE_PATHS="$(SPM_CACHE)" \
+		OTHER_SWIFT_FLAGS="-Xfrontend -enable-experimental-cxx-interop" \
 		CFLAGS="$(CFLAGS)"
 		
 	@rm -rf Payload
