@@ -18,9 +18,38 @@ extension AppContextManager {
 
         // Setup observers for context updates
         setupContextObservers()
+        
+        // Setup CoreML integration
+        setupCoreML()
+        
+        // Register for CoreML model load completion
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(coreMLModelLoaded),
+            name: Notification.Name("CoreMLModelLoaded"),
+            object: nil
+        )
 
         // Log successful initialization
         Debug.shared.log(message: "Custom AI Assistant integration initialized with \(availableCommands().count) commands", type: .info)
+    }
+    
+    /// Handle CoreML model load completion
+    @objc private func coreMLModelLoaded() {
+        Debug.shared.log(message: "CoreML model load completed, enhancing AI capabilities", type: .info)
+        
+        // Update any AI components that depend on the model
+        let additionalData: [String: Any] = [
+            "mlModelLoaded": true,
+            "mlCapabilities": ["intent recognition", "sentiment analysis", "parameter extraction"]
+        ]
+        setAdditionalContextData(additionalData)
+        
+        // Notify custom AI service that ML is available
+        NotificationCenter.default.post(
+            name: Notification.Name("AICapabilitiesEnhanced"),
+            object: nil
+        )
     }
 
     /// Setup context observation to keep AI updated with app state

@@ -558,6 +558,13 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                                 self.tableView.reloadData()
                                 self.scrollToBottom()
 
+                                // Record the interaction for AI learning
+                                self.recordAIInteraction(
+                                    userMessage: text,
+                                    aiResponse: response,
+                                    messageId: aiMessage.messageID ?? UUID().uuidString
+                                )
+                                
                                 // Extract and process any commands in the response
                                 self.processCommands(from: response)
 

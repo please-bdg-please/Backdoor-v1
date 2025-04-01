@@ -6,14 +6,93 @@
 
 import Foundation
 import UIKit
+import CoreML
 
 /// Custom AI service that replaces the OpenRouter API with a local AI implementation
 final class CustomAIService {
     // Singleton instance for app-wide use
     static let shared = CustomAIService()
+    
+    // Flag to track if CoreML is initialized
+    private var isCoreMLInitialized = false
 
     private init() {
         Debug.shared.log(message: "Initializing custom AI service", type: .info)
+        // Initialize CoreML in background to avoid startup delay
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.initializeCoreML()
+        }
+    }
+    
+    /// Initialize CoreML model
+    private func initializeCoreML() {
+        Debug.shared.log(message: "Starting CoreML initialization for AI service", type: .info)
+        
+        // Check if CoreML is already loaded by the manager
+        if CoreMLManager.shared.isModelLoaded {
+            self.isCoreMLInitialized = true
+            Debug.shared.log(message: "CoreML model already loaded via manager, AI service ready", type: .info)
+            return
+        }
+        
+        // Listen for CoreML model load completion
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCoreMLModelLoaded),
+            name: Notification.Name("CoreMLModelLoaded"),
+            object: nil
+        )
+        
+        // Listen for AI capabilities enhancement
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAICapabilitiesEnhanced),
+            name: Notification.Name("AICapabilitiesEnhanced"),
+            object: nil
+        )
+        
+        // Start loading the model if it's not already being loaded
+        // This provides a backup initialization path
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            // Ensure the model file is ready
+            ModelFileManager.shared.prepareMLModel { [weak self] result in
+                switch result {
+                case .success(let modelURL):
+                    Debug.shared.log(message: "ML model prepared at: \(modelURL.path)", type: .info)
+                    
+                    // Load the model
+                    CoreMLManager.shared.loadModel { success in
+                        if success && !(self?.isCoreMLInitialized ?? false) {
+                            self?.isCoreMLInitialized = true
+                            Debug.shared.log(message: "CoreML model successfully initialized via backup path", type: .info)
+                        } else if !success {
+                            Debug.shared.log(message: "CoreML model failed to initialize, falling back to pattern matching", type: .warning)
+                            self?.isCoreMLInitialized = false
+                        }
+                    }
+                    
+                case .failure(let error):
+                    Debug.shared.log(message: "Failed to prepare ML model: \(error.localizedDescription), falling back to pattern matching", type: .error)
+                    self?.isCoreMLInitialized = false
+                }
+            }
+        }
+    }
+    
+    /// Handle CoreML model load completion notification
+    @objc private func handleCoreMLModelLoaded() {
+        if !isCoreMLInitialized {
+            isCoreMLInitialized = true
+            Debug.shared.log(message: "CoreML model loaded notification received, enabling ML capabilities", type: .info)
+        }
+    }
+    
+    /// Handle AI capabilities enhancement notification
+    @objc private func handleAICapabilitiesEnhanced() {
+        if !isCoreMLInitialized && CoreMLManager.shared.isModelLoaded {
+            isCoreMLInitialized = true
+            Debug.shared.log(message: "AI capabilities enhanced, ML features now available", type: .info)
+        }
     }
 
     enum ServiceError: Error, LocalizedError {
@@ -49,24 +128,61 @@ final class CustomAIService {
 
         // Use a background thread for processing to keep UI responsive
         DispatchQueue.global(qos: .userInitiated).async {
-            // Analyze the message to understand what the user wants
-            let messageIntent = self.analyzeUserIntent(message: lastUserMessage)
-            
             // Get conversation history for context
             let conversationContext = self.extractConversationContext(messages: messages)
+            
+            // Process the language of the message if NaturalLanguage is available
+            if #available(iOS 13.0, *) {
+                // Identify the language of the message
+                let tagger = NLTagger(tagSchemes: [.language])
+                tagger.string = lastUserMessage
+                let language = tagger.dominantLanguage
+                
+                Debug.shared.log(message: "Detected message language: \(language ?? "unknown")", type: .debug)
+                
+                // Set language context for better response generation
+                if let detectedLanguage = language {
+                    var additionalContext: [String: Any] = context.additionalContext ?? [:]
+                    additionalContext["detectedLanguage"] = detectedLanguage
+                    context.additionalContext = additionalContext
+                }
+            }
+            
+            // Check if we should use CoreML-enhanced analysis
+            if self.isCoreMLInitialized {
+                // Use CoreML for enhanced intent analysis
+                self.analyzeUserIntentWithML(message: lastUserMessage) { messageIntent in
+                    // Use CoreML for enhanced response generation
+                    self.generateResponseWithML(
+                        intent: messageIntent,
+                        userMessage: lastUserMessage,
+                        conversationHistory: messages,
+                        conversationContext: conversationContext,
+                        appContext: context
+                    ) { response in
+                        // Add a small delay to simulate processing time
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                            completion(.success(response))
+                        }
+                    }
+                }
+            } else {
+                // Fall back to pattern matching if CoreML isn't available
+                let messageIntent = self.analyzeUserIntent(message: lastUserMessage)
+                
+                // Generate response based on intent and context
+                let response = self.generateResponse(
+                    intent: messageIntent,
+                    userMessage: lastUserMessage,
+                    conversationHistory: messages,
+                    conversationContext: conversationContext,
+                    appContext: context
+                )
 
-            // Generate response based on intent and context
-            let response = self.generateResponse(
-                intent: messageIntent,
-                userMessage: lastUserMessage,
-                conversationHistory: messages,
-                conversationContext: conversationContext,
-                appContext: context
-            )
-
-            // Add a small delay to simulate processing time (prevents jarring instant responses)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                completion(.success(response))
+                // Add a small delay to simulate processing time
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    completion(.success(response))
+                }
             }
         }
     }
@@ -81,7 +197,7 @@ final class CustomAIService {
 
     // MARK: - Intent Analysis
 
-    private enum MessageIntent {
+    enum MessageIntent {
         case question(topic: String)
         case appNavigation(destination: String)
         case appInstall(appName: String)
@@ -92,7 +208,7 @@ final class CustomAIService {
         case unknown
     }
 
-    private func analyzeUserIntent(message: String) -> MessageIntent {
+    func analyzeUserIntent(message: String) -> MessageIntent {
         let lowercasedMessage = message.lowercased()
 
         // Check for greetings
@@ -139,7 +255,7 @@ final class CustomAIService {
 
     // MARK: - Response Generation
 
-    private func generateResponse(intent: MessageIntent, userMessage: String, conversationHistory: [AIMessagePayload], conversationContext: String, appContext: AppContext) -> String {
+    func generateResponse(intent: MessageIntent, userMessage: String, conversationHistory: [AIMessagePayload], conversationContext: String, appContext: AppContext) -> String {
         // Get context information
         let contextInfo = appContext.currentScreen
         // Get available commands for use in help responses
