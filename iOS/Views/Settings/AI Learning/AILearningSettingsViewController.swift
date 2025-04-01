@@ -21,9 +21,10 @@ class AILearningSettingsViewController: UITableViewController {
     private enum Section: Int {
         case about = 0
         case settings = 1
-        case status = 2
-        case actions = 3
-        case export = 4
+        case serverSettings = 2
+        case status = 3
+        case actions = 4
+        case export = 5
     }
     
     // MARK: - Lifecycle
@@ -82,7 +83,7 @@ class AILearningSettingsViewController: UITableViewController {
     // MARK: - Table View Data Source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 5
+        return 6
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -91,10 +92,12 @@ class AILearningSettingsViewController: UITableViewController {
             return 1
         case .settings:
             return 1
+        case .serverSettings:
+            return 2
         case .status:
             return 5
         case .actions:
-            return 2
+            return 3
         case .export:
             return 1
         case .none:
@@ -121,6 +124,26 @@ class AILearningSettingsViewController: UITableViewController {
                 self.tableView.reloadSections(IndexSet(integer: Section.actions.rawValue), with: .automatic)
             }
             return cell
+            
+        case .serverSettings:
+            if indexPath.row == 0 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+                cell.textLabel?.text = "Enable Server Sync"
+                cell.switchControl.isOn = AILearningManager.shared.isServerSyncEnabled
+                cell.switchValueChanged = { isOn in
+                    AILearningManager.shared.setServerSyncEnabled(isOn)
+                    self.tableView.reloadSections([Section.serverSettings.rawValue, Section.actions.rawValue], with: .automatic)
+                }
+                return cell
+            } else {
+                let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
+                cell.textLabel?.text = "Configure Server"
+                cell.accessoryType = .disclosureIndicator
+                cell.selectionStyle = .default
+                cell.isUserInteractionEnabled = AILearningManager.shared.isServerSyncEnabled
+                cell.textLabel?.isEnabled = AILearningManager.shared.isServerSyncEnabled
+                return cell
+            }
             
         case .status:
             let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
@@ -149,9 +172,18 @@ class AILearningSettingsViewController: UITableViewController {
                 cell.textLabel?.text = "Train Model Now"
                 cell.accessoryType = .disclosureIndicator
                 cell.selectionStyle = .default
-                // Disable if learning is disabled
-                cell.isUserInteractionEnabled = AILearningManager.shared.isLearningEnabled
-                cell.textLabel?.isEnabled = AILearningManager.shared.isLearningEnabled
+                // Disable if learning is disabled or server sync is enabled
+                let enabled = AILearningManager.shared.isLearningEnabled && !AILearningManager.shared.isServerSyncEnabled
+                cell.isUserInteractionEnabled = enabled
+                cell.textLabel?.isEnabled = enabled
+            } else if indexPath.row == 1 {
+                cell.textLabel?.text = "Sync with Server Now"
+                cell.accessoryType = .disclosureIndicator
+                cell.selectionStyle = .default
+                // Disable if server sync is disabled
+                let enabled = AILearningManager.shared.isServerSyncEnabled
+                cell.isUserInteractionEnabled = enabled
+                cell.textLabel?.isEnabled = enabled
             } else {
                 cell.textLabel?.text = "Clear Stored Interactions"
                 cell.accessoryType = .disclosureIndicator
@@ -178,6 +210,8 @@ class AILearningSettingsViewController: UITableViewController {
             return "About AI Learning"
         case .settings:
             return "Settings"
+        case .serverSettings:
+            return "Server Settings"
         case .status:
             return "Status"
         case .actions:
@@ -192,9 +226,13 @@ class AILearningSettingsViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        if indexPath.section == Section.actions.rawValue {
+        if indexPath.section == Section.serverSettings.rawValue && indexPath.row == 1 {
+            configureServer()
+        } else if indexPath.section == Section.actions.rawValue {
             if indexPath.row == 0 {
                 trainModelNow()
+            } else if indexPath.row == 1 {
+                syncWithServerNow()
             } else {
                 promptClearInteractions()
             }
@@ -204,6 +242,70 @@ class AILearningSettingsViewController: UITableViewController {
     }
     
     // MARK: - Actions
+    
+    private func configureServer() {
+        let alert = UIAlertController(
+            title: "Server Configuration",
+            message: "Enter the server URL and API key for AI learning synchronization.",
+            preferredStyle: .alert
+        )
+        
+        // Add URL text field
+        alert.addTextField { textField in
+            textField.placeholder = "Server URL"
+            textField.text = UserDefaults.standard.string(forKey: "AIServerURL") ?? "https://ai.backdoor.app"
+            textField.clearButtonMode = .whileEditing
+            textField.autocorrectionType = .no
+            textField.autocapitalizationType = .none
+            textField.keyboardType = .URL
+        }
+        
+        // Add API key text field
+        alert.addTextField { textField in
+            textField.placeholder = "API Key"
+            textField.text = UserDefaults.standard.string(forKey: "AIServerAPIKey") ?? ""
+            textField.clearButtonMode = .whileEditing
+            textField.autocorrectionType = .no
+            textField.autocapitalizationType = .none
+            textField.isSecureTextEntry = true
+        }
+        
+        // Cancel action
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        // Save action
+        alert.addAction(UIAlertAction(title: "Save", style: .default) { [weak self, weak alert] _ in
+            guard let serverURL = alert?.textFields?[0].text, !serverURL.isEmpty,
+                  let apiKey = alert?.textFields?[1].text, !apiKey.isEmpty else {
+                self?.showErrorAlert(message: "Server URL and API key are required")
+                return
+            }
+            
+            // Update server configuration
+            BackdoorAIClient.shared.updateServerConfig(serverURL: serverURL, apiKey: apiKey)
+            
+            // Show confirmation
+            self?.showInfoAlert(title: "Server Configuration", message: "Server settings have been updated successfully.")
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    private func syncWithServerNow() {
+        // Show activity indicator
+        activityIndicator.startAnimating()
+        
+        // Start sync
+        Task {
+            await AILearningManager.shared.syncWithServer()
+            
+            DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                self.showInfoAlert(title: "Sync Complete", message: "Data has been synchronized with the server.")
+                self.tableView.reloadSections(IndexSet(integer: Section.status.rawValue), with: .automatic)
+            }
+        }
+    }
     
     private func promptExportModel() {
         let alert = UIAlertController(
@@ -271,6 +373,18 @@ class AILearningSettingsViewController: UITableViewController {
     private func showErrorAlert(message: String) {
         let alert = UIAlertController(
             title: "Error",
+            message: message,
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        present(alert, animated: true)
+    }
+    
+    private func showInfoAlert(title: String, message: String) {
+        let alert = UIAlertController(
+            title: title,
             message: message,
             preferredStyle: .alert
         )

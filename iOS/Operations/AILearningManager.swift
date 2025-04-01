@@ -87,13 +87,30 @@ class AILearningManager {
         Debug.shared.log(message: "AI learning \(enabled ? "enabled" : "disabled")", type: .info)
     }
     
+    /// Check if server sync is enabled (sending data to remote server)
+    var isServerSyncEnabled: Bool {
+        return UserDefaults.standard.bool(forKey: "AIServerSyncEnabled")
+    }
+    
+    /// Set whether server sync is enabled
+    func setServerSyncEnabled(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: "AIServerSyncEnabled")
+        Debug.shared.log(message: "AI server sync \(enabled ? "enabled" : "disabled")", type: .info)
+    }
+    
     /// Verify export password
     func verifyExportPassword(_ password: String) -> Bool {
         return password.sha256() == correctPasswordHash
     }
     
-    /// Get the URL for the latest trained model
+    /// Get the URL for the latest trained model (locally trained or server-provided)
     func getLatestModelURL() -> URL? {
+        // First check for server-provided model
+        if isServerSyncEnabled, let serverModelURL = BackdoorAIClient.shared.getLatestModelURL() {
+            return serverModelURL
+        }
+        
+        // Fall back to locally trained model
         let modelPath = modelsDirectory.appendingPathComponent("model_\(currentModelVersion).mlmodel")
         
         // Check if file exists
@@ -168,8 +185,13 @@ class AILearningManager {
         // Save to disk
         saveInteractions()
         
-        // Check if we should train a new model
-        evaluateTraining()
+        // If server sync is enabled, queue for sync
+        if isServerSyncEnabled {
+            queueForServerSync()
+        } else {
+            // Otherwise, check if we should train locally
+            evaluateTraining()
+        }
     }
     
     /// Record user behavior within the app
@@ -236,10 +258,15 @@ class AILearningManager {
             // Save
             saveInteractions()
             
-            // Consider training if this is highly-rated feedback
-            if rating >= 4 {
-                DispatchQueue.global(qos: .background).async { [weak self] in
-                    self?.evaluateTraining()
+            // If server sync is enabled, queue for sync
+            if isServerSyncEnabled {
+                queueForServerSync()
+            } else {
+                // Otherwise, consider training if this is highly-rated feedback
+                if rating >= 4 {
+                    DispatchQueue.global(qos: .background).async { [weak self] in
+                        self?.evaluateTraining()
+                    }
                 }
             }
         }
