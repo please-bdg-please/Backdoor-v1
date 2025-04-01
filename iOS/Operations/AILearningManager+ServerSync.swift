@@ -94,10 +94,12 @@ extension AILearningManager {
         
         // Upload data
         do {
+            // Some servers might not support the behaviors/patterns fields yet,
+            // so include only if there are non-empty arrays
             let modelInfo = try await BackdoorAIClient.shared.uploadInteractions(
                 interactions: interactionsToSend,
-                behaviors: behaviorsToSync,
-                patterns: patternsToSync
+                behaviors: behaviorsToSync.isEmpty ? [] : behaviorsToSync,
+                patterns: patternsToSync.isEmpty ? [] : patternsToSync
             )
             
             Debug.shared.log(message: "Successfully synchronized with server. Latest model: \(modelInfo.latestModelVersion)", type: .info)

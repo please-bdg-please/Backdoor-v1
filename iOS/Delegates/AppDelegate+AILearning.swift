@@ -17,6 +17,11 @@ extension AppDelegate {
             AILearningManager.shared.setLearningEnabled(true)
         }
         
+        // Enable server sync by default 
+        if UserDefaults.standard.object(forKey: "AIServerSyncEnabled") == nil {
+            AILearningManager.shared.setServerSyncEnabled(true)
+        }
+        
         // Add notification observer for model updates
         NotificationCenter.default.addObserver(
             self,

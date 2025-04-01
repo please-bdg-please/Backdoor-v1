@@ -253,7 +253,7 @@ class AILearningSettingsViewController: UITableViewController {
         // Add URL text field
         alert.addTextField { textField in
             textField.placeholder = "Server URL"
-            textField.text = UserDefaults.standard.string(forKey: "AIServerURL") ?? "https://ai.backdoor.app"
+            textField.text = UserDefaults.standard.string(forKey: "AIServerURL") ?? "https://database-iupv.onrender.com"
             textField.clearButtonMode = .whileEditing
             textField.autocorrectionType = .no
             textField.autocapitalizationType = .none

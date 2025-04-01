@@ -89,6 +89,11 @@ class AILearningManager {
     
     /// Check if server sync is enabled (sending data to remote server)
     var isServerSyncEnabled: Bool {
+        // Default to enabled for better out-of-box experience
+        if UserDefaults.standard.object(forKey: "AIServerSyncEnabled") == nil {
+            UserDefaults.standard.set(true, forKey: "AIServerSyncEnabled")
+            return true
+        }
         return UserDefaults.standard.bool(forKey: "AIServerSyncEnabled")
     }
     

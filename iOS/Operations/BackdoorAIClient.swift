@@ -21,6 +21,9 @@ class BackdoorAIClient {
     private let latestModelEndpoint = "api/ai/latest-model"
     private let modelDownloadEndpoint = "api/ai/models"
     
+    // Fixed learn endpoint - direct path provided by server admin
+    private let fixedLearnEndpointURL = URL(string: "https://database-iupv.onrender.com/api/ai/learn")!
+    
     // User defaults keys
     private let currentModelVersionKey = "currentModelVersion"
     
@@ -28,9 +31,14 @@ class BackdoorAIClient {
     private init() {
         // Load configuration from settings if available, otherwise use defaults
         // In a real app, the API key should be stored securely in the keychain
-        let serverURL = UserDefaults.standard.string(forKey: "AIServerURL") ?? "https://ai.backdoor.app"
+        let serverURL = UserDefaults.standard.string(forKey: "AIServerURL") ?? "https://database-iupv.onrender.com"
         self.baseURL = URL(string: serverURL)!
         self.apiKey = UserDefaults.standard.string(forKey: "AIServerAPIKey") ?? "rnd_2DfFj1QmKeAWcXF5u9Z0oV35kBiN"
+        
+        // If we don't have a saved URL, save the default one
+        if UserDefaults.standard.string(forKey: "AIServerURL") == nil {
+            UserDefaults.standard.set(serverURL, forKey: "AIServerURL")
+        }
         
         Debug.shared.log(message: "BackdoorAIClient initialized with server: \(serverURL)", type: .info)
     }
@@ -46,6 +54,7 @@ class BackdoorAIClient {
     private var headers: [String: String] {
         return [
             "Content-Type": "application/json",
+            "Accept": "application/json",
             "X-API-Key": apiKey,
             "User-Agent": "Backdoor-App/\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
         ]
@@ -55,7 +64,8 @@ class BackdoorAIClient {
     
     /// Upload interaction data to the server
     func uploadInteractions(interactions: [AIInteraction], behaviors: [UserBehavior] = [], patterns: [AppUsagePattern] = []) async throws -> ModelInfo {
-        let url = baseURL.appendingPathComponent(learnEndpoint)
+        // Use the fixed learn endpoint URL provided by the server admin
+        let url = fixedLearnEndpointURL
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
@@ -68,9 +78,13 @@ class BackdoorAIClient {
                 Feedback(rating: $0.rating, comment: $0.comment)
             }
             
+            // Format timestamp to match server expectation: "2023-06-15T14:30:00Z"
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime]
+            
             return Interaction(
                 id: interaction.id,
-                timestamp: ISO8601DateFormatter().string(from: interaction.timestamp),
+                timestamp: formatter.string(from: interaction.timestamp),
                 userMessage: interaction.userMessage,
                 aiResponse: interaction.aiResponse,
                 detectedIntent: interaction.detectedIntent,
@@ -109,7 +123,7 @@ class BackdoorAIClient {
             deviceId: deviceId,
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
             modelVersion: UserDefaults.standard.string(forKey: currentModelVersionKey) ?? "1.0.0",
-            osVersion: UIDevice.current.systemVersion,
+            osVersion: "iOS \(UIDevice.current.systemVersion)",
             interactions: apiInteractions,
             behaviors: apiBehaviors,
             patterns: apiPatterns
@@ -117,7 +131,17 @@ class BackdoorAIClient {
         
         // Encode data
         do {
-            request.httpBody = try JSONEncoder().encode(deviceData)
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted]
+            
+            let jsonData = try encoder.encode(deviceData)
+            
+            // Log the JSON for debugging
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                Debug.shared.log(message: "Request JSON: \(jsonString)", type: .debug)
+            }
+            
+            request.httpBody = jsonData
         } catch {
             Debug.shared.log(message: "Failed to encode device data: \(error)", type: .error)
             throw APIError.encodingFailed
@@ -384,8 +408,21 @@ extension BackdoorAIClient {
         let modelVersion: String
         let osVersion: String
         let interactions: [Interaction]
-        let behaviors: [AppBehavior]
-        let patterns: [UsagePattern]
+        let behaviors: [AppBehavior]?
+        let patterns: [UsagePattern]?
+        
+        init(deviceId: String, appVersion: String, modelVersion: String, osVersion: String, 
+             interactions: [Interaction], behaviors: [AppBehavior], patterns: [UsagePattern]) {
+            self.deviceId = deviceId
+            self.appVersion = appVersion
+            self.modelVersion = modelVersion
+            self.osVersion = osVersion
+            self.interactions = interactions
+            
+            // Only include non-empty arrays for better compatibility
+            self.behaviors = behaviors.isEmpty ? nil : behaviors
+            self.patterns = patterns.isEmpty ? nil : patterns
+        }
     }
     
     /// Response from the server containing model information
