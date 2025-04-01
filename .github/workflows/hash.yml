@@ -1,0 +1,115 @@
+name: Fetch Commit Hashes for Swift Packages
+
+# Controls when the workflow will run
+on:
+  push:
+    branches:
+      - main  # Adjust to your default branch
+  pull_request:
+    branches:
+      - main  # Adjust to your default branch
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC (optional)
+
+# A workflow run is made up of one or more jobs
+jobs:
+  fetch-commit-hashes:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed
+    steps:
+      # Checks out your repository under $GITHUB_WORKSPACE
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up the environment with Git
+      - name: Set up Git
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git
+
+      # Create and run the script
+      - name: Create and Execute Commit Hash Script
+        run: |
+          # Write the script to a file
+          cat << 'EOF' > get_commit_hashes.sh
+          #!/bin/bash
+
+          # Function to retrieve commit hash based on URL and constraint (version or branch)
+          function get_commit_hash {
+              local url=$1
+              local constraint=$2
+              local type=$3  # "version" or "branch"
+
+              if [ "$type" = "branch" ]; then
+                  # Fetch the latest commit hash for the specified branch
+                  git ls-remote --heads "$url" "$constraint" | awk '{print $1}'
+              else
+                  # Try fetching the commit hash for the version tag as specified
+                  local hash=$(git ls-remote --tags "$url" "$constraint" | awk '{print $1}')
+                  if [ -z "$hash" ]; then
+                      # If not found, try with "v" prefix (e.g., "v1.8.3" instead of "1.8.3")
+                      hash=$(git ls-remote --tags "$url" "v$constraint" | awk '{print $1}')
+                  fi
+                  echo "$hash"
+              fi
+          }
+
+          # List of packages with their URLs and constraints
+          echo "Fetching commit hashes for the following packages:"
+
+          # CryptoSwift (from: "1.8.3")
+          echo "CryptoSwift (version 1.8.3)"
+          crypto_hash=$(get_commit_hash "https://github.com/krzyzanowskim/CryptoSwift.git" "1.8.3" "version")
+          echo "CryptoSwift: $crypto_hash"
+
+          # SnapKit (.upToNextMajor(from: "5.0.1"))
+          echo "SnapKit (version 5.0.1)"
+          snapkit_hash=$(get_commit_hash "https://github.com/SnapKit/SnapKit.git" "5.0.1" "version")
+          echo "SnapKit: $snapkit_hash"
+
+          # lottie-spm (from: "4.5.1")
+          echo "lottie-spm (version 4.5.1)"
+          lottie_hash=$(get_commit_hash "https://github.com/airbnb/lottie-spm.git" "4.5.1" "version")
+          echo "lottie-spm: $lottie_hash"
+
+          # SwiftUIX (branch: "master")
+          echo "SwiftUIX (branch master)"
+          swiftuix_hash=$(get_commit_hash "https://github.com/SwiftUIX/SwiftUIX.git" "master" "branch")
+          echo "SwiftUIX: $swiftuix_hash"
+
+          # Moya (.upToNextMajor(from: "15.0.0"))
+          echo "Moya (version 15.0.0)"
+          moya_hash=$(get_commit_hash "https://github.com/Moya/Moya.git" "15.0.0" "version")
+          echo "Moya: $moya_hash"
+
+          # R.swift (from: "7.0.0")
+          echo "R.swift (version 7.0.0)"
+          rswift_hash=$(get_commit_hash "https://github.com/mac-cain13/R.swift.git" "7.0.0" "version")
+          echo "R.swift: $rswift_hash"
+
+          # ZIPFoundation (from: "0.9.19")
+          echo "ZIPFoundation (version 0.9.19)"
+          zipfoundation_hash=$(get_commit_hash "https://github.com/weichsel/ZIPFoundation.git" "0.9.19" "version")
+          echo "ZIPFoundation: $zipfoundation_hash"
+
+          echo -e "\nDone! Use these commit hashes to update your Package.resolved file."
+          EOF
+
+          # Make the script executable
+          chmod +x get_commit_hashes.sh
+
+          # Run the script and capture output
+          ./get_commit_hashes.sh > commit_hashes.txt 2>&1
+
+      # Upload the output as an artifact
+      - name: Upload Commit Hashes Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-hashes
+          path: commit_hashes.txt
+
+      # Display the output in the workflow logs
+      - name: Display Commit Hashes
+        run: cat commit_hashes.txt
