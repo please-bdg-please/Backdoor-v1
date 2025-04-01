@@ -7,6 +7,7 @@
 import Foundation
 import UIKit
 import CoreML
+import NaturalLanguage
 
 /// Custom AI service that replaces the OpenRouter API with a local AI implementation
 final class CustomAIService {
