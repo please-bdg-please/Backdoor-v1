@@ -26,6 +26,10 @@ class SettingsViewController: FRSTableViewController {
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SIGN_OPTIONS"),
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"),
     ]
+    
+    let aiSection = [
+        "AI Learning Settings",
+    ]
 
     let logsSection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS"),
@@ -88,12 +92,13 @@ class SettingsViewController: FRSTableViewController {
             aboutSection,
             displaySection,
             certificateSection,
+            aiSection,
             logsSection,
             foldersSection,
             resetSection,
         ]
 
-        sectionTitles = ["", "", "", "", "", ""]
+        sectionTitles = ["", "", "", "", "", "", ""]
         ensureTableDataHasSections()
     }
 
@@ -272,6 +277,9 @@ extension SettingsViewController {
                 navigationController?.pushViewController(l, animated: true)
             case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"):
                 let l = ServerOptionsViewController()
+                navigationController?.pushViewController(l, animated: true)
+            case "AI Learning Settings":
+                let l = AILearningSettingsViewController(style: .grouped)
                 navigationController?.pushViewController(l, animated: true)
             case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS"):
                 let l = LogsViewController()

@@ -63,6 +63,12 @@ final class CoreMLManager {
     
     /// Load the CoreML model asynchronously
     func loadModel(completion: ((Bool) -> Void)? = nil) {
+        // Call the enhanced version that checks for locally trained models
+        loadModelWithLocalLearning(completion: completion)
+    }
+    
+    /// Load the CoreML model with local learning support
+    func loadModelWithLocalLearning(completion: ((Bool) -> Void)? = nil) {
         // If model is already loaded, return early
         guard !modelLoaded else {
             Debug.shared.log(message: "Model already loaded", type: .info)
@@ -70,6 +76,28 @@ final class CoreMLManager {
             return
         }
         
+        // First check for a locally trained model
+        if let localModelURL = AILearningManager.shared.getLatestModelURL() {
+            Debug.shared.log(message: "Found locally trained model, attempting to load", type: .info)
+            loadModelFromURL(localModelURL) { [weak self] success in
+                if success {
+                    Debug.shared.log(message: "Successfully loaded locally trained model", type: .info)
+                    completion?(true)
+                } else {
+                    Debug.shared.log(message: "Failed to load locally trained model, falling back to default", type: .warning)
+                    // Fall back to default model
+                    self?.loadDefaultModel(completion: completion)
+                }
+            }
+            return
+        }
+        
+        // No locally trained model, use default
+        loadDefaultModel(completion: completion)
+    }
+    
+    /// Load the default CoreML model
+    private func loadDefaultModel(completion: ((Bool) -> Void)? = nil) {
         // First try with existing URL
         if let modelURL = modelURL {
             loadModelFromURL(modelURL, completion: completion)
@@ -484,18 +512,24 @@ enum SentimentType: String {
 /// Errors that can occur during prediction
 enum PredictionError: Error, LocalizedError {
     case modelNotLoaded
+    case modelNotFound
     case invalidModelFormat
     case unsupportedInputType
+    case unsupportedOperation
     case predictionFailed(Error)
     
     var errorDescription: String? {
         switch self {
         case .modelNotLoaded:
             return "CoreML model is not loaded"
+        case .modelNotFound:
+            return "CoreML model could not be found"
         case .invalidModelFormat:
             return "CoreML model has an invalid format"
         case .unsupportedInputType:
             return "CoreML model has an unsupported input type"
+        case .unsupportedOperation:
+            return "Operation not supported on this iOS version"
         case let .predictionFailed(error):
             return "Prediction failed: \(error.localizedDescription)"
         }
