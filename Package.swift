@@ -34,6 +34,9 @@ let package = Package(
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.14.0"),
         .package(url: "https://github.com/vapor/async-kit.git", from: "1.20.0"),
         
+        // Natural Language Processing
+        .package(url: "https://github.com/SimformSolutionsPvtLtd/SSNaturalLanguage.git", from: "1.0.0"),
+        
         // Security and Encryption - IMPORTANT: Using original OpenSSL package for zsign compatibility
         .package(url: "https://github.com/HAHALOSAH/OpenSSL-Swift-Package.git", branch: "main"),
         
@@ -74,6 +77,9 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "AsyncKit", package: "async-kit"),
+                
+                // Natural Language Processing
+                .product(name: "SSNaturalLanguage", package: "SSNaturalLanguage"),
                 
                 // Security and networking - Using OpenSSL-Swift-Package for zsign compatibility
                 .product(name: "OpenSSL", package: "OpenSSL-Swift-Package"),

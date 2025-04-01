@@ -8,6 +8,7 @@ import Foundation
 import UIKit
 import CoreML
 import NaturalLanguage
+import SSNaturalLanguage
 
 /// Custom AI service that replaces the OpenRouter API with a local AI implementation
 final class CustomAIService {
@@ -132,24 +133,28 @@ final class CustomAIService {
             // Get conversation history for context
             let conversationContext = self.extractConversationContext(messages: messages)
             
-            // Process the language of the message if NaturalLanguage is available
-            if #available(iOS 13.0, *) {
-                // Identify the language of the message
-                let tagger = NLTagger(tagSchemes: [.language])
-                tagger.string = lastUserMessage
-                let language = tagger.dominantLanguage
-                
-                // Convert Optional<NLLanguage> to String for logging
-                let languageString = language?.rawValue ?? "unknown"
-                Debug.shared.log(message: "Detected message language: \(languageString)", type: .debug)
-                
-                // Set language context for better response generation
-                if let detectedLanguage = language {
-                    var additionalContext: [String: Any] = context.additionalContext ?? [:]
-                    additionalContext["detectedLanguage"] = detectedLanguage.rawValue
-                    context.additionalContext = additionalContext
-                }
+            // Process the language of the message using our NaturalLanguageHelper
+            // Identify the language of the message
+            let detectedLanguage = NaturalLanguageHelper.shared.detectLanguage(in: lastUserMessage)
+            
+            Debug.shared.log(message: "Detected message language: \(detectedLanguage)", type: .debug)
+            
+            // Set language context for better response generation
+            var additionalContext: [String: Any] = context.additionalContext ?? [:]
+            additionalContext["detectedLanguage"] = detectedLanguage
+            context.additionalContext = additionalContext
+            
+            // Also extract entities for better context understanding
+            let entities = NaturalLanguageHelper.shared.extractEntities(from: lastUserMessage)
+            if !entities.isEmpty {
+                additionalContext["entities"] = entities
+                Debug.shared.log(message: "Detected entities: \(entities)", type: .debug)
             }
+            
+            // Get sentiment score
+            let sentimentScore = NaturalLanguageHelper.shared.analyzeSentiment(in: lastUserMessage)
+            additionalContext["sentiment"] = sentimentScore
+            Debug.shared.log(message: "Message sentiment score: \(sentimentScore)", type: .debug)
             
             // Check if we should use CoreML-enhanced analysis
             if self.isCoreMLInitialized {
